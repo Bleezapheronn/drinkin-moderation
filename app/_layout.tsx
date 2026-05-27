@@ -1,0 +1,23 @@
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+
+export default function RootLayout() {
+  return (
+    <>
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: "#f7f4ef" },
+          headerStyle: { backgroundColor: "#f7f4ef" },
+          headerShadowVisible: false,
+          headerTitleStyle: { fontWeight: "700" },
+        }}
+      >
+        <Stack.Screen name="index" options={{ title: "DrinkInModeration" }} />
+        <Stack.Screen name="new-session" options={{ title: "New Session" }} />
+        <Stack.Screen name="active-session" options={{ title: "Active Session" }} />
+        <Stack.Screen name="session-summary" options={{ title: "Session Summary" }} />
+      </Stack>
+      <StatusBar style="dark" />
+    </>
+  );
+}

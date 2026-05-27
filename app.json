@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "DrinkInModeration",
+    "slug": "drinkin-moderation",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "drinkinmoderation",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "shortName": "DIM"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
