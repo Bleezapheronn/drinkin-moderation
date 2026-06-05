@@ -24,8 +24,15 @@ const spendingCategories: SpendingCategory[] = [
 ];
 
 export default function ActiveSessionScreen() {
-  const { addSpendingItem, endSession, isRestoring, logDrink, session, storageError } =
-    useSession();
+  const {
+    addSpendingItem,
+    endSession,
+    isRestoring,
+    logDrink,
+    reminderPermissionStatus,
+    session,
+    storageError,
+  } = useSession();
   const [now, setNow] = useState(Date.now());
   const [isSpendingModalVisible, setIsSpendingModalVisible] = useState(false);
   const [spendingAmount, setSpendingAmount] = useState("");
@@ -161,6 +168,13 @@ export default function ActiveSessionScreen() {
             <Text style={styles.noticeBody}>{storageError}</Text>
           </View>
         ) : null}
+
+        <View style={styles.reminderStatus}>
+          <Text style={styles.reminderStatusTitle}>Reminders</Text>
+          <Text style={styles.reminderStatusBody}>
+            {getReminderStatusCopy(reminderPermissionStatus)}
+          </Text>
+        </View>
 
         <View style={styles.metrics}>
           <Metric label="Drinks" value={`${session.drinkCount} / ${session.maxDrinks}`} />
@@ -418,6 +432,22 @@ function getSpendingWarning(session: DrinkingSession, totalSpent: number) {
   return null;
 }
 
+function getReminderStatusCopy(status: string) {
+  if (status === "granted") {
+    return "Reminders are on for this session.";
+  }
+
+  if (status === "denied") {
+    return "Reminders are off. You can still use the in-app timer.";
+  }
+
+  if (status === "error") {
+    return "Reminders could not be scheduled. You can still use the in-app timer.";
+  }
+
+  return "Reminders will be requested before the first pacing reminder.";
+}
+
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
@@ -478,6 +508,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#fbe9e6",
     borderColor: "#df9b8f",
     borderWidth: 1,
+  },
+  reminderStatus: {
+    gap: 6,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  reminderStatusTitle: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  reminderStatusBody: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
   },
   noticeTitle: {
     color: "#1f2a2e",

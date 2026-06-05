@@ -1,6 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
+import {
+  cancelAllDimSessionReminders,
+  cancelSessionReminders,
+  reconcileSessionReminders,
+  ReminderPermissionStatus,
+  requestReminderPermissions,
+  scheduleSessionReminders,
+} from "../utils/session-notifications";
+
 export type SessionConfig = {
   intervalMinutes: number;
   maxDrinks: number;
@@ -22,11 +31,17 @@ export type SpendingItem = {
   createdAt: number;
 };
 
+export type SessionNotificationIds = {
+  nextDrinkReminderId: string;
+  waterReminderId: string | null;
+};
+
 export type DrinkingSession = SessionConfig & {
   drinkCount: number;
   startedAt: number;
   endedAt: number | null;
   nextAllowedDrinkAt: number | null;
+  notificationIds: SessionNotificationIds | null;
   spendingItems: SpendingItem[];
 };
 
@@ -35,6 +50,7 @@ type SessionContextValue = {
   completedSessions: DrinkingSession[];
   latestCompletedSession: DrinkingSession | null;
   isRestoring: boolean;
+  reminderPermissionStatus: ReminderPermissionStatus;
   storageError: string | null;
   startSession: (config: SessionConfig) => void;
   logDrink: () => void;
@@ -54,6 +70,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
     null,
   );
   const [isRestoring, setIsRestoring] = useState(true);
+  const [reminderPermissionStatus, setReminderPermissionStatus] =
+    useState<ReminderPermissionStatus>("unknown");
   const [storageError, setStorageError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,9 +83,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
           AsyncStorage.getItem(latestCompletedSessionKey),
         ]);
 
-        setSession(activeValue ? parseSession(activeValue) : null);
+        const restoredActiveSession = activeValue ? parseSession(activeValue) : null;
+
+        setSession(restoredActiveSession);
         setCompletedSessions(completedValue ? parseSessions(completedValue) : []);
         setLatestCompletedSession(latestValue ? parseSession(latestValue) : null);
+
+        if (restoredActiveSession) {
+          void reconcileRestoredSession(restoredActiveSession);
+        }
       } catch {
         setStorageError("Stored session data could not be loaded. You can keep using the app.");
       } finally {
@@ -100,12 +124,50 @@ export function SessionProvider({ children }: PropsWithChildren) {
     });
   };
 
+  const storeReminderResult = (
+    scheduledSession: DrinkingSession,
+    ids: SessionNotificationIds | null,
+  ) => {
+    const nextSession = {
+      ...scheduledSession,
+      notificationIds: ids,
+    };
+
+    setSession((current) => {
+      if (
+        !current ||
+        current.startedAt !== scheduledSession.startedAt ||
+        current.nextAllowedDrinkAt !== scheduledSession.nextAllowedDrinkAt
+      ) {
+        return current;
+      }
+
+      persistActiveSession(nextSession);
+      return nextSession;
+    });
+  };
+
+  const scheduleAndStoreReminders = async (scheduledSession: DrinkingSession) => {
+    const result = await scheduleSessionReminders(scheduledSession);
+
+    setReminderPermissionStatus(result.status);
+    storeReminderResult(scheduledSession, result.ids);
+  };
+
+  const reconcileRestoredSession = async (restoredSession: DrinkingSession) => {
+    const result = await reconcileSessionReminders(restoredSession);
+
+    setReminderPermissionStatus(result.status);
+    storeReminderResult(restoredSession, result.ids);
+  };
+
   const value = useMemo<SessionContextValue>(
     () => ({
       session,
       completedSessions,
       latestCompletedSession,
       isRestoring,
+      reminderPermissionStatus,
       storageError,
       startSession: (config) => {
         const nextSession = {
@@ -114,30 +176,30 @@ export function SessionProvider({ children }: PropsWithChildren) {
           startedAt: Date.now(),
           endedAt: null,
           nextAllowedDrinkAt: null,
+          notificationIds: null,
           spendingItems: [],
         };
 
         setStorageError(null);
         setSession(nextSession);
         persistActiveSession(nextSession);
+        void requestReminderPermissions().then(setReminderPermissionStatus);
       },
       logDrink: () => {
-        setSession((current) => {
-          if (!current || current.endedAt || current.drinkCount >= current.maxDrinks) {
-            return current;
-          }
+        if (!session || session.endedAt || session.drinkCount >= session.maxDrinks) {
+          return;
+        }
 
-          const drinkCount = current.drinkCount + 1;
+        const nextSession = {
+          ...session,
+          drinkCount: session.drinkCount + 1,
+          nextAllowedDrinkAt: Date.now() + session.intervalMinutes * 60 * 1000,
+          notificationIds: session.notificationIds,
+        };
 
-          const nextSession = {
-            ...current,
-            drinkCount,
-            nextAllowedDrinkAt: Date.now() + current.intervalMinutes * 60 * 1000,
-          };
-
-          persistActiveSession(nextSession);
-          return nextSession;
-        });
+        setSession(nextSession);
+        persistActiveSession(nextSession);
+        void scheduleAndStoreReminders(nextSession);
       },
       addSpendingItem: (item) => {
         setSession((current) => {
@@ -170,6 +232,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           const nextSession = {
             ...current,
             endedAt: Date.now(),
+            notificationIds: null,
           };
 
           setLatestCompletedSession(nextSession);
@@ -179,24 +242,41 @@ export function SessionProvider({ children }: PropsWithChildren) {
             persistCompletedSessions(nextSessions);
             return nextSessions;
           });
+          void cancelSessionReminders(current.notificationIds);
+          void cancelAllDimSessionReminders();
           persistActiveSession(null);
 
           return null;
         });
       },
     }),
-    [completedSessions, isRestoring, latestCompletedSession, session, storageError],
+    [
+      completedSessions,
+      isRestoring,
+      latestCompletedSession,
+      reminderPermissionStatus,
+      session,
+      storageError,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 
+function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
+  return {
+    ...session,
+    notificationIds: session.notificationIds ?? null,
+    spendingItems: session.spendingItems ?? [],
+  };
+}
+
 function parseSession(value: string): DrinkingSession {
-  return JSON.parse(value) as DrinkingSession;
+  return withDefaultSessionFields(JSON.parse(value) as DrinkingSession);
 }
 
 function parseSessions(value: string): DrinkingSession[] {
-  return JSON.parse(value) as DrinkingSession[];
+  return (JSON.parse(value) as DrinkingSession[]).map(withDefaultSessionFields);
 }
 
 export function useSession() {
