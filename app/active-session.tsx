@@ -13,6 +13,7 @@ import {
 
 import { DrinkingSession, SpendingCategory, useSession } from "../context/session";
 import { formatCurrency } from "../utils/currency";
+import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
 import { getTotalSpent } from "../utils/session-metrics";
 
 const spendingCategories: SpendingCategory[] = [
@@ -54,6 +55,7 @@ export default function ActiveSessionScreen() {
   const hasReachedMax = Boolean(session && session.drinkCount >= session.maxDrinks);
   const isTimerActive = remainingSeconds > 0;
   const canLogDrink = Boolean(session && !session.endedAt && !hasReachedMax && !isTimerActive);
+  const nextIntervalMinutes = session ? getIntervalForNextDrink(session) : 0;
   const totalSpent = session ? getTotalSpent(session) : 0;
   const remainingBudget =
     session?.spendingCap === null || !session ? null : session.spendingCap - totalSpent;
@@ -177,8 +179,10 @@ export default function ActiveSessionScreen() {
         </View>
 
         <View style={styles.metrics}>
+          <Metric label="Preset" value={session.presetName ?? "Custom"} />
+          <Metric label="Drink type" value={session.primaryDrinkType} />
           <Metric label="Drinks" value={`${session.drinkCount} / ${session.maxDrinks}`} />
-          <Metric label="Interval" value={`${session.intervalMinutes} min`} />
+          <Metric label="Next interval" value={`${nextIntervalMinutes} min`} />
           <Metric label="Next drink" value={formatRemainingTime(remainingSeconds)} />
           <Metric label="Spent" value={formatCurrency(totalSpent)} />
           <Metric
@@ -188,6 +192,11 @@ export default function ActiveSessionScreen() {
           {remainingBudget !== null ? (
             <Metric label="Remaining budget" value={formatCurrency(remainingBudget)} />
           ) : null}
+        </View>
+
+        <View style={styles.pacingCard}>
+          <Text style={styles.pacingTitle}>Pacing rule</Text>
+          <Text style={styles.pacingBody}>{getPacingSummary(session.pacing)}</Text>
         </View>
 
         {drinkWarning ? (
@@ -523,6 +532,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   reminderStatusBody: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  pacingCard: {
+    gap: 6,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  pacingTitle: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  pacingBody: {
     color: "#52605f",
     fontSize: 15,
     lineHeight: 21,

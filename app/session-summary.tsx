@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { SpendingItem, useSession } from "../context/session";
 import { formatCurrency } from "../utils/currency";
+import { getPacingSummary } from "../utils/pacing";
 import {
   getTotalSpent,
   stayedWithinDrinkPlan,
@@ -54,11 +55,13 @@ export default function SessionSummaryScreen() {
       <View style={styles.card}>
         <SummaryRow label="Total drinks" value={`${summarySession.drinkCount}`} />
         <SummaryRow label="Maximum drinks" value={`${summarySession.maxDrinks}`} />
+        <SummaryRow label="Preset" value={summarySession.presetName ?? "Custom"} />
+        <SummaryRow label="Primary drink type" value={summarySession.primaryDrinkType} />
         <SummaryRow
           label="Stayed within drink plan"
           value={stayedWithinDrinkPlan(summarySession) ? "Yes" : "No"}
         />
-        <SummaryRow label="Interval used" value={`${summarySession.intervalMinutes} minutes`} />
+        <SummaryRow label="Pacing used" value={getPacingSummary(summarySession.pacing)} />
         <SummaryRow label="Total spending" value={formatCurrency(totalSpent)} />
         <SummaryRow
           label="Spending cap"

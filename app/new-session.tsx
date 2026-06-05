@@ -11,30 +11,73 @@ import {
   View,
 } from "react-native";
 
-import { useSession } from "../context/session";
+import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from "../context/session";
+import { getPacingSummary } from "../utils/pacing";
+import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
 
 type FormErrors = {
-  intervalMinutes?: string;
+  firstIntervalMinutes?: string;
+  laterIntervalMinutes?: string;
   maxDrinks?: string;
   spendingCap?: string;
 };
 
 export default function NewSessionScreen() {
   const { startSession } = useSession();
-  const [intervalMinutes, setIntervalMinutes] = useState("60");
+  const [selectedPresetName, setSelectedPresetName] = useState<SessionPresetName | null>(null);
+  const [pacingType, setPacingType] = useState<"fixed" | "dynamic">("fixed");
+  const [firstIntervalMinutes, setFirstIntervalMinutes] = useState("60");
+  const [laterIntervalMinutes, setLaterIntervalMinutes] = useState("90");
+  const [switchAfterDrink, setSwitchAfterDrink] = useState(3);
   const [maxDrinks, setMaxDrinks] = useState("6");
   const [spendingCap, setSpendingCap] = useState("");
+  const [primaryDrinkType, setPrimaryDrinkType] = useState<PrimaryDrinkType>("Beer");
+  const [guidance, setGuidance] = useState<string | null>(null);
+  const [presetNote, setPresetNote] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const selectedPreset = sessionPresets.find((preset) => preset.name === selectedPresetName);
+
+  const handlePresetSelect = (presetName: SessionPresetName) => {
+    const preset = sessionPresets.find((candidate) => candidate.name === presetName);
+
+    if (!preset) {
+      return;
+    }
+
+    setSelectedPresetName(preset.name);
+    setMaxDrinks(String(preset.maxDrinks));
+    setSpendingCap(preset.spendingCap === null ? "" : String(preset.spendingCap));
+    setGuidance(preset.guidance);
+    setPresetNote(preset.note ?? null);
+    setPacingType(preset.pacing.type);
+
+    if (preset.pacing.type === "fixed") {
+      setFirstIntervalMinutes(String(preset.pacing.intervalMinutes));
+    } else {
+      setFirstIntervalMinutes(String(preset.pacing.firstIntervalMinutes));
+      setLaterIntervalMinutes(String(preset.pacing.laterIntervalMinutes));
+      setSwitchAfterDrink(preset.pacing.switchAfterDrink);
+    }
+  };
 
   const handleStartSession = () => {
     const nextErrors: FormErrors = {};
-    const parsedInterval = Number(intervalMinutes);
+    const parsedFirstInterval = Number(firstIntervalMinutes);
+    const parsedLaterInterval = Number(laterIntervalMinutes);
     const parsedMaxDrinks = Number(maxDrinks);
     const trimmedSpendingCap = spendingCap.trim();
     const parsedSpendingCap = trimmedSpendingCap ? Number(trimmedSpendingCap) : null;
 
-    if (!Number.isFinite(parsedInterval) || parsedInterval <= 0) {
-      nextErrors.intervalMinutes = "Use a number greater than 0.";
+    if (!Number.isFinite(parsedFirstInterval) || parsedFirstInterval <= 0) {
+      nextErrors.firstIntervalMinutes = "Use a number greater than 0.";
+    }
+
+    if (
+      pacingType === "dynamic" &&
+      (!Number.isFinite(parsedLaterInterval) || parsedLaterInterval <= 0)
+    ) {
+      nextErrors.laterIntervalMinutes = "Use a number greater than 0.";
     }
 
     if (!Number.isFinite(parsedMaxDrinks) || parsedMaxDrinks <= 0) {
@@ -54,9 +97,25 @@ export default function NewSessionScreen() {
       return;
     }
 
+    const pacing: PacingConfig =
+      pacingType === "fixed"
+        ? {
+            intervalMinutes: parsedFirstInterval,
+            type: "fixed",
+          }
+        : {
+            firstIntervalMinutes: parsedFirstInterval,
+            laterIntervalMinutes: parsedLaterInterval,
+            switchAfterDrink,
+            type: "dynamic",
+          };
+
     startSession({
-      intervalMinutes: parsedInterval,
+      intervalMinutes: parsedFirstInterval,
       maxDrinks: Math.floor(parsedMaxDrinks),
+      pacing,
+      presetName: selectedPresetName,
+      primaryDrinkType,
       spendingCap: parsedSpendingCap,
     });
     router.replace("/active-session");
@@ -69,18 +128,37 @@ export default function NewSessionScreen() {
     >
       <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Set the plan while clear-headed.</Text>
-        <Text style={styles.body}>
-          Choose practical limits now. You can keep the plan simple and adjust the MVP later.
-        </Text>
+        <Text style={styles.body}>Pick a starting point, then adjust anything that needs it.</Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Presets</Text>
+          {sessionPresets.map((preset) => {
+            const isSelected = selectedPresetName === preset.name;
+
+            return (
+              <Pressable
+                key={preset.name}
+                onPress={() => handlePresetSelect(preset.name)}
+                style={[styles.presetCard, isSelected ? styles.presetCardSelected : null]}
+              >
+                <Text style={styles.presetName}>{preset.name}</Text>
+                <Text style={styles.body}>{preset.useCase}</Text>
+                <Text style={styles.presetDetail}>{getPacingSummary(preset.pacing)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {guidance ? (
+          <View style={styles.guidanceCard}>
+            <Text style={styles.guidanceTitle}>{selectedPreset?.name ?? "Guidance"}</Text>
+            <Text style={styles.guidanceText}>{guidance}</Text>
+            {presetNote ? <Text style={styles.guidanceText}>{presetNote}</Text> : null}
+          </View>
+        ) : null}
 
         <View style={styles.form}>
-          <Field
-            error={errors.intervalMinutes}
-            keyboardType="number-pad"
-            label="Drink interval in minutes"
-            onChangeText={setIntervalMinutes}
-            value={intervalMinutes}
-          />
+          <Text style={styles.sectionTitle}>Plan details</Text>
           <Field
             error={errors.maxDrinks}
             keyboardType="number-pad"
@@ -88,6 +166,47 @@ export default function NewSessionScreen() {
             onChangeText={setMaxDrinks}
             value={maxDrinks}
           />
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Pacing type</Text>
+            <View style={styles.optionRow}>
+              <OptionButton
+                isSelected={pacingType === "fixed"}
+                label="Fixed interval"
+                onPress={() => setPacingType("fixed")}
+              />
+              <OptionButton
+                isSelected={pacingType === "dynamic"}
+                label="Dynamic interval"
+                onPress={() => setPacingType("dynamic")}
+              />
+            </View>
+          </View>
+
+          <Field
+            error={errors.firstIntervalMinutes}
+            keyboardType="number-pad"
+            label={pacingType === "fixed" ? "Drink interval in minutes" : "First 3 drinks"}
+            onChangeText={setFirstIntervalMinutes}
+            value={firstIntervalMinutes}
+          />
+
+          {pacingType === "dynamic" ? (
+            <>
+              <View style={styles.summaryCard}>
+                <Text style={styles.label}>Switch point</Text>
+                <Text style={styles.body}>After drink {switchAfterDrink}</Text>
+              </View>
+              <Field
+                error={errors.laterIntervalMinutes}
+                keyboardType="number-pad"
+                label="After that"
+                onChangeText={setLaterIntervalMinutes}
+                value={laterIntervalMinutes}
+              />
+            </>
+          ) : null}
+
           <Field
             error={errors.spendingCap}
             keyboardType="decimal-pad"
@@ -96,6 +215,48 @@ export default function NewSessionScreen() {
             placeholder="Optional"
             value={spendingCap}
           />
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Primary drink type</Text>
+            <View style={styles.optionGrid}>
+              {primaryDrinkTypes.map((drinkType) => (
+                <OptionButton
+                  key={drinkType}
+                  isSelected={primaryDrinkType === drinkType}
+                  label={drinkType}
+                  onPress={() => setPrimaryDrinkType(drinkType)}
+                />
+              ))}
+            </View>
+          </View>
+
+          {primaryDrinkType === "Spirits / liquor" || primaryDrinkType === "Cocktails" ? (
+            <View style={styles.warningCard}>
+              <Text style={styles.warningText}>
+                Stronger drinks make it easier to cross the line without noticing. Consider a
+                lower max or longer interval.
+              </Text>
+            </View>
+          ) : null}
+
+          <View style={styles.summaryCard}>
+            <Text style={styles.label}>Current pacing rule</Text>
+            <Text style={styles.body}>
+              {getPacingSummary(
+                pacingType === "fixed"
+                  ? {
+                      intervalMinutes: Number(firstIntervalMinutes) || 0,
+                      type: "fixed",
+                    }
+                  : {
+                      firstIntervalMinutes: Number(firstIntervalMinutes) || 0,
+                      laterIntervalMinutes: Number(laterIntervalMinutes) || 0,
+                      switchAfterDrink,
+                      type: "dynamic",
+                    },
+              )}
+            </Text>
+          </View>
         </View>
 
         <Pressable onPress={handleStartSession} style={styles.primaryButton}>
@@ -132,6 +293,25 @@ function Field({ error, keyboardType, label, onChangeText, placeholder, value }:
   );
 }
 
+type OptionButtonProps = {
+  isSelected: boolean;
+  label: string;
+  onPress: () => void;
+};
+
+function OptionButton({ isSelected, label, onPress }: OptionButtonProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.optionButton, isSelected ? styles.optionButtonSelected : null]}
+    >
+      <Text style={[styles.optionButtonText, isSelected ? styles.optionButtonTextSelected : null]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
@@ -153,6 +333,55 @@ const styles = StyleSheet.create({
     color: "#52605f",
     fontSize: 16,
     lineHeight: 23,
+  },
+  section: {
+    gap: 12,
+  },
+  sectionTitle: {
+    color: "#1f2a2e",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  presetCard: {
+    gap: 8,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  presetCardSelected: {
+    borderColor: "#2f6f62",
+    backgroundColor: "#e3eee9",
+  },
+  presetName: {
+    color: "#1f2a2e",
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  presetDetail: {
+    color: "#2f6f62",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+  guidanceCard: {
+    gap: 8,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#fff7df",
+    borderColor: "#ead48b",
+    borderWidth: 1,
+  },
+  guidanceTitle: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  guidanceText: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
   },
   form: {
     gap: 16,
@@ -183,6 +412,55 @@ const styles = StyleSheet.create({
     color: "#9b3f3f",
     fontSize: 14,
     lineHeight: 20,
+  },
+  optionRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  optionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  optionButton: {
+    borderRadius: 8,
+    borderColor: "#cfc6ba",
+    borderWidth: 1,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  optionButtonSelected: {
+    borderColor: "#2f6f62",
+    backgroundColor: "#e3eee9",
+  },
+  optionButtonText: {
+    color: "#1f2a2e",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  optionButtonTextSelected: {
+    color: "#2f6f62",
+  },
+  warningCard: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#fff7df",
+    borderColor: "#ead48b",
+    borderWidth: 1,
+  },
+  warningText: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  summaryCard: {
+    gap: 8,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
   },
   primaryButton: {
     alignItems: "center",

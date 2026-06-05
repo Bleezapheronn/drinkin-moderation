@@ -9,10 +9,40 @@ import {
   requestReminderPermissions,
   scheduleSessionReminders,
 } from "../utils/session-notifications";
+import { getIntervalForNextDrink } from "../utils/pacing";
+
+export type SessionPresetName =
+  | "Solo / Home"
+  | "Drinks @Home w/ Company"
+  | "Night Out"
+  | "High-Risk Night";
+
+export type PrimaryDrinkType =
+  | "Beer"
+  | "Wine"
+  | "Spirits / liquor"
+  | "Cocktails"
+  | "Mixed"
+  | "Non-alcoholic / tracking only";
+
+export type PacingConfig =
+  | {
+      intervalMinutes: number;
+      type: "fixed";
+    }
+  | {
+      firstIntervalMinutes: number;
+      laterIntervalMinutes: number;
+      switchAfterDrink: number;
+      type: "dynamic";
+    };
 
 export type SessionConfig = {
   intervalMinutes: number;
   maxDrinks: number;
+  pacing: PacingConfig;
+  presetName: SessionPresetName | null;
+  primaryDrinkType: PrimaryDrinkType;
   spendingCap: number | null;
 };
 
@@ -193,7 +223,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         const nextSession = {
           ...session,
           drinkCount: session.drinkCount + 1,
-          nextAllowedDrinkAt: Date.now() + session.intervalMinutes * 60 * 1000,
+          nextAllowedDrinkAt: Date.now() + getIntervalForNextDrink(session) * 60 * 1000,
           notificationIds: session.notificationIds,
         };
 
@@ -264,9 +294,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
 }
 
 function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
+  const legacyIntervalMinutes = session.intervalMinutes ?? 60;
+
   return {
     ...session,
+    intervalMinutes: legacyIntervalMinutes,
     notificationIds: session.notificationIds ?? null,
+    pacing: session.pacing ?? {
+      intervalMinutes: legacyIntervalMinutes,
+      type: "fixed",
+    },
+    presetName: session.presetName ?? null,
+    primaryDrinkType: session.primaryDrinkType ?? "Mixed",
     spendingItems: session.spendingItems ?? [],
   };
 }
