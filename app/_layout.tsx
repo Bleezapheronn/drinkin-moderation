@@ -1,9 +1,11 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { SessionProvider } from "../context/session";
+
 export default function RootLayout() {
   return (
-    <>
+    <SessionProvider>
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: "#f7f4ef" },
@@ -18,6 +20,6 @@ export default function RootLayout() {
         <Stack.Screen name="session-summary" options={{ title: "Session Summary" }} />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </SessionProvider>
   );
 }

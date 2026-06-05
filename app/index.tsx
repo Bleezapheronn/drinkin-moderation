@@ -1,9 +1,20 @@
 import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+
+import { DrinkingSession, useSession } from "../context/session";
+import { formatCurrency } from "../utils/currency";
+import {
+  getTotalSpent,
+  stayedWithinDrinkPlan,
+  stayedWithinSpendingPlan,
+} from "../utils/session-metrics";
 
 export default function HomeScreen() {
+  const { completedSessions, isRestoring, session, storageError } = useSession();
+  const recentSessions = completedSessions.slice(0, 3);
+
   return (
-    <View style={styles.screen}>
+    <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.header}>
         <Text style={styles.kicker}>DIM</Text>
         <Text style={styles.title}>DrinkInModeration</Text>
@@ -12,14 +23,66 @@ export default function HomeScreen() {
         </Text>
       </View>
 
+      {storageError ? (
+        <View style={styles.notice}>
+          <Text style={styles.noticeText}>{storageError}</Text>
+        </View>
+      ) : null}
+
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Tonight plan</Text>
         <Text style={styles.body}>
-          Start by setting your drink interval, drink maximum, and optional spending cap.
+          {isRestoring
+            ? "Checking this device for a saved active session."
+            : session
+              ? "There is an active session saved on this device."
+              : "Start by setting your drink interval, drink maximum, and optional spending cap."}
         </Text>
-        <Link href="/new-session" style={styles.primaryButton}>
-          Start a new session
-        </Link>
+
+        {session ? (
+          <Link href="/active-session" style={styles.primaryButton}>
+            Resume Session
+          </Link>
+        ) : (
+          <Link href="/new-session" style={styles.primaryButton}>
+            Start a new session
+          </Link>
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Recent Sessions</Text>
+        {recentSessions.length > 0 ? (
+          recentSessions.map((recentSession) => (
+            <RecentSessionCard key={`${recentSession.startedAt}-${recentSession.endedAt}`} session={recentSession} />
+          ))
+        ) : (
+          <Text style={styles.body}>Completed sessions will appear here after you end them.</Text>
+        )}
+      </View>
+    </ScrollView>
+  );
+}
+
+type RecentSessionCardProps = {
+  session: DrinkingSession;
+};
+
+function RecentSessionCard({ session }: RecentSessionCardProps) {
+  return (
+    <View style={styles.recentCard}>
+      <Text style={styles.recentDate}>
+        {new Date(session.endedAt ?? session.startedAt).toLocaleString()}
+      </Text>
+      <View style={styles.recentRows}>
+        <Text style={styles.recentText}>Drinks: {session.drinkCount}</Text>
+        <Text style={styles.recentText}>Spending: {formatCurrency(getTotalSpent(session))}</Text>
+        <Text style={styles.recentText}>
+          Drink plan: {stayedWithinDrinkPlan(session) ? "Within plan" : "Over plan"}
+        </Text>
+        <Text style={styles.recentText}>
+          Spending plan: {stayedWithinSpendingPlan(session) ? "Within plan" : "Over plan"}
+        </Text>
       </View>
     </View>
   );
@@ -27,7 +90,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    flex: 1,
+    flexGrow: 1,
     gap: 24,
     padding: 24,
     paddingTop: 56,
@@ -80,5 +143,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 14,
     textAlign: "center",
+  },
+  section: {
+    gap: 12,
+  },
+  sectionTitle: {
+    color: "#1f2a2e",
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  recentCard: {
+    gap: 10,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  recentDate: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  recentRows: {
+    gap: 4,
+  },
+  recentText: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  notice: {
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#fbe9e6",
+    borderColor: "#df9b8f",
+    borderWidth: 1,
+  },
+  noticeText: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
   },
 });
