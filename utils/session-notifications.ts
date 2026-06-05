@@ -177,7 +177,8 @@ function getWaterReminderTime(session: DrinkingSession) {
     return null;
   }
 
-  const intervalMilliseconds = session.intervalMinutes * 60 * 1000;
+  const latestDrinkLog = session.drinkLogs.at(-1);
+  const intervalMilliseconds = (latestDrinkLog?.intervalMinutes ?? session.intervalMinutes) * 60 * 1000;
   const reminderTime = session.nextAllowedDrinkAt - intervalMilliseconds / 2;
 
   return reminderTime > Date.now() ? reminderTime : null;

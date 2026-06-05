@@ -61,6 +61,12 @@ export type SpendingItem = {
   createdAt: number;
 };
 
+export type DrinkLog = {
+  id: string;
+  intervalMinutes: number;
+  loggedAt: number;
+};
+
 export type SessionNotificationIds = {
   nextDrinkReminderId: string;
   waterReminderId: string | null;
@@ -68,6 +74,7 @@ export type SessionNotificationIds = {
 
 export type DrinkingSession = SessionConfig & {
   drinkCount: number;
+  drinkLogs: DrinkLog[];
   startedAt: number;
   endedAt: number | null;
   nextAllowedDrinkAt: number | null;
@@ -84,7 +91,10 @@ type SessionContextValue = {
   storageError: string | null;
   startSession: (config: SessionConfig) => void;
   logDrink: () => void;
+  undoLastDrink: () => void;
   addSpendingItem: (item: Omit<SpendingItem, "id" | "createdAt">) => void;
+  updateSpendingItem: (item: SpendingItem) => void;
+  deleteSpendingItem: (id: string) => void;
   endSession: () => void;
 };
 
@@ -203,6 +213,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         const nextSession = {
           ...config,
           drinkCount: 0,
+          drinkLogs: [],
           startedAt: Date.now(),
           endedAt: null,
           nextAllowedDrinkAt: null,
@@ -220,16 +231,61 @@ export function SessionProvider({ children }: PropsWithChildren) {
           return;
         }
 
+        const loggedAt = Date.now();
+        const intervalMinutes = getIntervalForNextDrink(session);
+        const nextDrinkCount = session.drinkCount + 1;
         const nextSession = {
           ...session,
-          drinkCount: session.drinkCount + 1,
-          nextAllowedDrinkAt: Date.now() + getIntervalForNextDrink(session) * 60 * 1000,
+          drinkCount: nextDrinkCount,
+          drinkLogs: [
+            ...session.drinkLogs,
+            {
+              id: `${loggedAt}-${session.drinkLogs.length}`,
+              intervalMinutes,
+              loggedAt,
+            },
+          ],
+          nextAllowedDrinkAt: loggedAt + intervalMinutes * 60 * 1000,
           notificationIds: session.notificationIds,
         };
 
         setSession(nextSession);
         persistActiveSession(nextSession);
         void scheduleAndStoreReminders(nextSession);
+      },
+      undoLastDrink: () => {
+        if (!session || session.endedAt || session.drinkCount <= 0) {
+          return;
+        }
+
+        const nextDrinkLogs = session.drinkLogs.slice(0, -1);
+        const latestDrinkLog = nextDrinkLogs.at(-1);
+        const nextSession = {
+          ...session,
+          drinkCount: Math.max(0, session.drinkCount - 1),
+          drinkLogs: nextDrinkLogs,
+          nextAllowedDrinkAt: latestDrinkLog
+            ? latestDrinkLog.loggedAt + latestDrinkLog.intervalMinutes * 60 * 1000
+            : null,
+          notificationIds: session.notificationIds,
+        };
+
+        setSession(nextSession);
+        persistActiveSession(nextSession);
+
+        if (nextSession.nextAllowedDrinkAt) {
+          void scheduleAndStoreReminders(nextSession);
+        } else {
+          void cancelSessionReminders(session.notificationIds);
+          persistActiveSession({
+            ...nextSession,
+            notificationIds: null,
+          });
+          setSession({
+            ...nextSession,
+            notificationIds: null,
+          });
+        }
       },
       addSpendingItem: (item) => {
         setSession((current) => {
@@ -247,6 +303,38 @@ export function SessionProvider({ children }: PropsWithChildren) {
                 createdAt: Date.now(),
               },
             ],
+          };
+
+          persistActiveSession(nextSession);
+          return nextSession;
+        });
+      },
+      updateSpendingItem: (item) => {
+        setSession((current) => {
+          if (!current || current.endedAt) {
+            return current;
+          }
+
+          const nextSession = {
+            ...current,
+            spendingItems: current.spendingItems.map((spendingItem) =>
+              spendingItem.id === item.id ? item : spendingItem,
+            ),
+          };
+
+          persistActiveSession(nextSession);
+          return nextSession;
+        });
+      },
+      deleteSpendingItem: (id) => {
+        setSession((current) => {
+          if (!current || current.endedAt) {
+            return current;
+          }
+
+          const nextSession = {
+            ...current,
+            spendingItems: current.spendingItems.filter((spendingItem) => spendingItem.id !== id),
           };
 
           persistActiveSession(nextSession);
@@ -295,10 +383,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
 function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
   const legacyIntervalMinutes = session.intervalMinutes ?? 60;
+  const drinkLogs =
+    session.drinkLogs ??
+    Array.from({ length: session.drinkCount }, (_, index) => ({
+      id: `legacy-${session.startedAt}-${index}`,
+      intervalMinutes: legacyIntervalMinutes,
+      loggedAt: session.startedAt,
+    }));
 
   return {
     ...session,
     intervalMinutes: legacyIntervalMinutes,
+    drinkLogs,
     notificationIds: session.notificationIds ?? null,
     pacing: session.pacing ?? {
       intervalMinutes: legacyIntervalMinutes,

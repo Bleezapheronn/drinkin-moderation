@@ -27,12 +27,15 @@ const spendingCategories: SpendingCategory[] = [
 export default function ActiveSessionScreen() {
   const {
     addSpendingItem,
+    deleteSpendingItem,
     endSession,
     isRestoring,
     logDrink,
     reminderPermissionStatus,
     session,
     storageError,
+    undoLastDrink,
+    updateSpendingItem,
   } = useSession();
   const [now, setNow] = useState(Date.now());
   const [isSpendingModalVisible, setIsSpendingModalVisible] = useState(false);
@@ -40,6 +43,7 @@ export default function ActiveSessionScreen() {
   const [spendingNote, setSpendingNote] = useState("");
   const [spendingCategory, setSpendingCategory] = useState<SpendingCategory>("My drink");
   const [spendingError, setSpendingError] = useState<string | null>(null);
+  const [editingSpendingId, setEditingSpendingId] = useState<string | null>(null);
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -67,6 +71,7 @@ export default function ActiveSessionScreen() {
     setSpendingNote("");
     setSpendingCategory("My drink");
     setSpendingError(null);
+    setEditingSpendingId(null);
   };
 
   const closeSpendingModal = () => {
@@ -74,13 +79,57 @@ export default function ActiveSessionScreen() {
     setIsSpendingModalVisible(false);
   };
 
-  const addSpending = (amount: number) => {
+  const saveSpending = (amount: number) => {
+    if (editingSpendingId) {
+      const existingItem = session?.spendingItems.find((item) => item.id === editingSpendingId);
+
+      if (!existingItem) {
+        closeSpendingModal();
+        return;
+      }
+
+      updateSpendingItem({
+        ...existingItem,
+        amount,
+        category: spendingCategory,
+        note: spendingNote.trim(),
+      });
+      closeSpendingModal();
+      return;
+    }
+
     addSpendingItem({
       amount,
       category: spendingCategory,
       note: spendingNote.trim(),
     });
     closeSpendingModal();
+  };
+
+  const openEditSpending = (id: string) => {
+    const item = session?.spendingItems.find((spendingItem) => spendingItem.id === id);
+
+    if (!item) {
+      return;
+    }
+
+    setEditingSpendingId(item.id);
+    setSpendingAmount(String(item.amount));
+    setSpendingNote(item.note);
+    setSpendingCategory(item.category);
+    setSpendingError(null);
+    setIsSpendingModalVisible(true);
+  };
+
+  const confirmDeleteSpending = (id: string) => {
+    Alert.alert("Delete this spending entry?", undefined, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => deleteSpendingItem(id),
+      },
+    ]);
   };
 
   const handleSubmitSpending = () => {
@@ -98,7 +147,12 @@ export default function ActiveSessionScreen() {
     setSpendingError(null);
 
     if (spendingCategory !== "Round / other people") {
-      addSpending(amount);
+      saveSpending(amount);
+      return;
+    }
+
+    if (editingSpendingId) {
+      saveSpending(amount);
       return;
     }
 
@@ -114,7 +168,7 @@ export default function ActiveSessionScreen() {
         { text: "Cancel", style: "cancel" },
         {
           text: wouldExceedCap ? "Add anyway" : "Add spending",
-          onPress: () => addSpending(amount),
+          onPress: () => saveSpending(amount),
         },
       ],
     );
@@ -125,6 +179,20 @@ export default function ActiveSessionScreen() {
       logDrink();
       setNow(Date.now());
     }
+  };
+
+  const confirmUndoLastDrink = () => {
+    Alert.alert("Remove the most recent drink log?", undefined, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove drink",
+        style: "destructive",
+        onPress: () => {
+          undoLastDrink();
+          setNow(Date.now());
+        },
+      },
+    ]);
   };
 
   const handleEndSession = () => {
@@ -215,6 +283,32 @@ export default function ActiveSessionScreen() {
           />
         ) : null}
 
+        {session.spendingItems.length > 0 ? (
+          <View style={styles.entriesCard}>
+            <Text style={styles.entriesTitle}>Spending entries</Text>
+            {session.spendingItems.map((item) => (
+              <View key={item.id} style={styles.entryRow}>
+                <View style={styles.entryTextBlock}>
+                  <Text style={styles.entryAmount}>{formatCurrency(item.amount)}</Text>
+                  <Text style={styles.entryMeta}>{item.category}</Text>
+                  {item.note ? <Text style={styles.entryNote}>{item.note}</Text> : null}
+                </View>
+                <View style={styles.entryActions}>
+                  <Pressable onPress={() => openEditSpending(item.id)} style={styles.smallButton}>
+                    <Text style={styles.smallButtonText}>Edit</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => confirmDeleteSpending(item.id)}
+                    style={styles.smallButton}
+                  >
+                    <Text style={styles.smallButtonText}>Delete</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View style={styles.actions}>
           <Pressable
             disabled={!canLogDrink}
@@ -227,6 +321,12 @@ export default function ActiveSessionScreen() {
               Log Drink
             </Text>
           </Pressable>
+
+          {session.drinkCount > 0 ? (
+            <Pressable onPress={confirmUndoLastDrink} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>Undo last drink</Text>
+            </Pressable>
+          ) : null}
 
           {isTimerActive ? (
             <Text style={styles.helperText}>
@@ -261,8 +361,14 @@ export default function ActiveSessionScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalPanel}>
-            <Text style={styles.modalTitle}>Log Spending</Text>
-            <Text style={styles.body}>Add what you spent so the plan stays visible.</Text>
+            <Text style={styles.modalTitle}>
+              {editingSpendingId ? "Edit Spending" : "Log Spending"}
+            </Text>
+            <Text style={styles.body}>
+              {editingSpendingId
+                ? "Adjust the entry so the session stays accurate."
+                : "Add what you spent so the plan stays visible."}
+            </Text>
 
             <View style={styles.field}>
               <Text style={styles.label}>Amount</Text>
@@ -319,7 +425,9 @@ export default function ActiveSessionScreen() {
                 <Text style={styles.secondaryButtonText}>Cancel</Text>
               </Pressable>
               <Pressable onPress={handleSubmitSpending} style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>Add Spending</Text>
+                <Text style={styles.primaryButtonText}>
+                  {editingSpendingId ? "Save Changes" : "Add Spending"}
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -553,6 +661,60 @@ const styles = StyleSheet.create({
     color: "#52605f",
     fontSize: 15,
     lineHeight: 21,
+  },
+  entriesCard: {
+    gap: 12,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  entriesTitle: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  entryRow: {
+    gap: 10,
+    paddingTop: 12,
+    borderTopColor: "#e5ded3",
+    borderTopWidth: 1,
+  },
+  entryTextBlock: {
+    gap: 4,
+  },
+  entryAmount: {
+    color: "#1f2a2e",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  entryMeta: {
+    color: "#52605f",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  entryNote: {
+    color: "#52605f",
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  entryActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  smallButton: {
+    borderRadius: 8,
+    borderColor: "#cfc6ba",
+    borderWidth: 1,
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  smallButtonText: {
+    color: "#1f2a2e",
+    fontSize: 14,
+    fontWeight: "700",
   },
   noticeTitle: {
     color: "#1f2a2e",
