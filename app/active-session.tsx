@@ -246,6 +246,23 @@ export default function ActiveSessionScreen() {
           </Text>
         </View>
 
+        {(session.behavioralReminders.foodEnabled ||
+          session.behavioralReminders.goHomeEnabled) ? (
+          <View style={styles.behaviorReminderCard}>
+            <Text style={styles.behaviorReminderTitle}>Plan reminders</Text>
+            {session.behavioralReminders.foodEnabled ? (
+              <Text style={styles.behaviorReminderText}>
+                Food reminder: {session.behavioralReminders.foodTriggered ? "shown" : "on"}
+              </Text>
+            ) : null}
+            {session.behavioralReminders.goHomeEnabled ? (
+              <Text style={styles.behaviorReminderText}>
+                Go-home reminder: {session.behavioralReminders.goHomeTriggered ? "shown" : "on"}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={styles.metrics}>
           <Metric label="Preset" value={session.presetName ?? "Custom"} />
           <Metric label="Drink type" value={session.primaryDrinkType} />
@@ -272,6 +289,26 @@ export default function ActiveSessionScreen() {
             body={drinkWarning.body}
             level={drinkWarning.level}
             title={drinkWarning.title}
+          />
+        ) : null}
+
+        {session.behavioralReminders.foodTriggered ? (
+          <WarningNotice
+            body="Eat something before the night gets away from you."
+            level="standard"
+            title="Food check"
+          />
+        ) : null}
+
+        {session.behavioralReminders.goHomeTriggered ? (
+          <WarningNotice
+            body={
+              session.presetName === "High-Risk Night"
+                ? "This is a guardrail night. You do not need to win the night. You need to exit it cleanly."
+                : "You reached the plan. This is the point where future-you benefits from going home."
+            }
+            level="final"
+            title={session.presetName === "High-Risk Night" ? "Create an exit" : "Time to wrap up"}
           />
         ) : null}
 
@@ -658,6 +695,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   pacingBody: {
+    color: "#52605f",
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  behaviorReminderCard: {
+    gap: 6,
+    padding: 16,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  behaviorReminderTitle: {
+    color: "#1f2a2e",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  behaviorReminderText: {
     color: "#52605f",
     fontSize: 15,
     lineHeight: 21,

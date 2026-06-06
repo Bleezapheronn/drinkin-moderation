@@ -3,6 +3,10 @@ import type { PacingConfig, PrimaryDrinkType, SessionPresetName } from "../conte
 export type SessionPreset = {
   name: SessionPresetName;
   useCase: string;
+  behavioralReminders: {
+    food: boolean;
+    goHome: boolean;
+  };
   maxDrinks: number;
   spendingCap: number | null;
   pacing: PacingConfig;
@@ -24,6 +28,10 @@ export const sessionPresets: SessionPreset[] = [
     name: "Solo / Home",
     useCase: "A low-risk home session.",
     maxDrinks: 3,
+    behavioralReminders: {
+      food: false,
+      goHome: false,
+    },
     spendingCap: null,
     pacing: {
       intervalMinutes: 60,
@@ -35,6 +43,10 @@ export const sessionPresets: SessionPreset[] = [
     name: "Drinks @Home w/ Company",
     useCase: "Friends are over and the night may run long.",
     maxDrinks: 6,
+    behavioralReminders: {
+      food: false,
+      goHome: false,
+    },
     spendingCap: null,
     pacing: {
       firstIntervalMinutes: 60,
@@ -48,6 +60,10 @@ export const sessionPresets: SessionPreset[] = [
     name: "Night Out",
     useCase: "A social night where spending, food, and getting home matter.",
     maxDrinks: 6,
+    behavioralReminders: {
+      food: true,
+      goHome: true,
+    },
     spendingCap: 3000,
     pacing: {
       firstIntervalMinutes: 60,
@@ -62,6 +78,10 @@ export const sessionPresets: SessionPreset[] = [
     name: "High-Risk Night",
     useCase: "Hard liquor, volatile company, or outside your comfort zone.",
     maxDrinks: 3,
+    behavioralReminders: {
+      food: false,
+      goHome: true,
+    },
     spendingCap: 2000,
     pacing: {
       intervalMinutes: 90,

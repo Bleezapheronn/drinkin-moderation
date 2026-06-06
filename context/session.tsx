@@ -7,6 +7,7 @@ import {
   reconcileSessionReminders,
   ReminderPermissionStatus,
   requestReminderPermissions,
+  sendBehavioralReminder,
   scheduleSessionReminders,
 } from "../utils/session-notifications";
 import { getIntervalForNextDrink } from "../utils/pacing";
@@ -38,12 +39,20 @@ export type PacingConfig =
     };
 
 export type SessionConfig = {
+  behavioralReminders: BehavioralReminderState;
   intervalMinutes: number;
   maxDrinks: number;
   pacing: PacingConfig;
   presetName: SessionPresetName | null;
   primaryDrinkType: PrimaryDrinkType;
   spendingCap: number | null;
+};
+
+export type BehavioralReminderState = {
+  foodEnabled: boolean;
+  foodTriggered: boolean;
+  goHomeEnabled: boolean;
+  goHomeTriggered: boolean;
 };
 
 export type SpendingCategory =
@@ -234,8 +243,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
         const loggedAt = Date.now();
         const intervalMinutes = getIntervalForNextDrink(session);
         const nextDrinkCount = session.drinkCount + 1;
+        const behavioralReminders = getBehavioralReminderStateAfterDrink(session, nextDrinkCount);
         const nextSession = {
           ...session,
+          behavioralReminders,
           drinkCount: nextDrinkCount,
           drinkLogs: [
             ...session.drinkLogs,
@@ -252,6 +263,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(nextSession);
         persistActiveSession(nextSession);
         void scheduleAndStoreReminders(nextSession);
+        void sendTriggeredBehavioralReminders(session, nextSession);
       },
       undoLastDrink: () => {
         if (!session || session.endedAt || session.drinkCount <= 0) {
@@ -394,6 +406,12 @@ function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
   return {
     ...session,
     intervalMinutes: legacyIntervalMinutes,
+    behavioralReminders: session.behavioralReminders ?? {
+      foodEnabled: false,
+      foodTriggered: false,
+      goHomeEnabled: false,
+      goHomeTriggered: false,
+    },
     drinkLogs,
     notificationIds: session.notificationIds ?? null,
     pacing: session.pacing ?? {
@@ -404,6 +422,54 @@ function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
     primaryDrinkType: session.primaryDrinkType ?? "Mixed",
     spendingItems: session.spendingItems ?? [],
   };
+}
+
+function getBehavioralReminderStateAfterDrink(
+  session: DrinkingSession,
+  nextDrinkCount: number,
+): BehavioralReminderState {
+  const halfwayDrinkCount = Math.ceil(session.maxDrinks / 2);
+
+  return {
+    ...session.behavioralReminders,
+    foodTriggered:
+      session.behavioralReminders.foodTriggered ||
+      (session.behavioralReminders.foodEnabled && nextDrinkCount >= halfwayDrinkCount),
+    goHomeTriggered:
+      session.behavioralReminders.goHomeTriggered ||
+      (session.behavioralReminders.goHomeEnabled && nextDrinkCount >= session.maxDrinks),
+  };
+}
+
+async function sendTriggeredBehavioralReminders(
+  previousSession: DrinkingSession,
+  nextSession: DrinkingSession,
+) {
+  if (
+    !previousSession.behavioralReminders.foodTriggered &&
+    nextSession.behavioralReminders.foodTriggered
+  ) {
+    await sendBehavioralReminder({
+      body: "Eat something before the night gets away from you.",
+      title: "Food check",
+      type: "food",
+    });
+  }
+
+  if (
+    !previousSession.behavioralReminders.goHomeTriggered &&
+    nextSession.behavioralReminders.goHomeTriggered
+  ) {
+    const isHighRiskNight = nextSession.presetName === "High-Risk Night";
+
+    await sendBehavioralReminder({
+      body: isHighRiskNight
+        ? "This is a guardrail night. Slow down, switch to water, and leave if you can."
+        : "You reached the plan you set while sober. Go home with no regrets.",
+      title: isHighRiskNight ? "Create an exit" : "Time to wrap up",
+      type: "go-home",
+    });
+  }
 }
 
 function parseSession(value: string): DrinkingSession {

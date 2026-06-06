@@ -34,6 +34,8 @@ export default function NewSessionScreen() {
   const [primaryDrinkType, setPrimaryDrinkType] = useState<PrimaryDrinkType>("Beer");
   const [guidance, setGuidance] = useState<string | null>(null);
   const [presetNote, setPresetNote] = useState<string | null>(null);
+  const [foodReminderEnabled, setFoodReminderEnabled] = useState(false);
+  const [goHomeReminderEnabled, setGoHomeReminderEnabled] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const selectedPreset = sessionPresets.find((preset) => preset.name === selectedPresetName);
@@ -50,6 +52,8 @@ export default function NewSessionScreen() {
     setSpendingCap(preset.spendingCap === null ? "" : String(preset.spendingCap));
     setGuidance(preset.guidance);
     setPresetNote(preset.note ?? null);
+    setFoodReminderEnabled(preset.behavioralReminders.food);
+    setGoHomeReminderEnabled(preset.behavioralReminders.goHome);
     setPacingType(preset.pacing.type);
 
     if (preset.pacing.type === "fixed") {
@@ -111,6 +115,12 @@ export default function NewSessionScreen() {
           };
 
     startSession({
+      behavioralReminders: {
+        foodEnabled: foodReminderEnabled,
+        foodTriggered: false,
+        goHomeEnabled: goHomeReminderEnabled,
+        goHomeTriggered: false,
+      },
       intervalMinutes: parsedFirstInterval,
       maxDrinks: Math.floor(parsedMaxDrinks),
       pacing,
@@ -256,6 +266,24 @@ export default function NewSessionScreen() {
                     },
               )}
             </Text>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>Behavioral reminders</Text>
+            <View style={styles.optionRow}>
+              <OptionButton
+                isSelected={foodReminderEnabled}
+                label={`Food reminder: ${foodReminderEnabled ? "on" : "off"}`}
+                onPress={() => setFoodReminderEnabled((enabled) => !enabled)}
+              />
+            </View>
+            <View style={styles.optionRow}>
+              <OptionButton
+                isSelected={goHomeReminderEnabled}
+                label={`Go-home reminder: ${goHomeReminderEnabled ? "on" : "off"}`}
+                onPress={() => setGoHomeReminderEnabled((enabled) => !enabled)}
+              />
+            </View>
           </View>
         </View>
 

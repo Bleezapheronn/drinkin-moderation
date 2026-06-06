@@ -75,6 +75,22 @@ export default function SessionSummaryScreen() {
           label="Stayed within spending plan"
           value={stayedWithinSpendingPlan(summarySession) ? "Yes" : "No"}
         />
+        <SummaryRow
+          label="Food reminder enabled"
+          value={summarySession.behavioralReminders.foodEnabled ? "Yes" : "No"}
+        />
+        <SummaryRow
+          label="Food reminder triggered"
+          value={summarySession.behavioralReminders.foodTriggered ? "Yes" : "No"}
+        />
+        <SummaryRow
+          label="Go-home reminder enabled"
+          value={summarySession.behavioralReminders.goHomeEnabled ? "Yes" : "No"}
+        />
+        <SummaryRow
+          label="Go-home reminder triggered"
+          value={summarySession.behavioralReminders.goHomeTriggered ? "Yes" : "No"}
+        />
       </View>
 
       {summarySession.spendingItems.length > 0 ? (

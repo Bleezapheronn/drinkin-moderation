@@ -24,6 +24,12 @@ export type ReminderScheduleResult = {
   status: ReminderPermissionStatus;
 };
 
+type BehavioralReminderInput = {
+  body: string;
+  title: string;
+  type: "food" | "go-home";
+};
+
 export async function requestReminderPermissions(): Promise<ReminderPermissionStatus> {
   try {
     await ensureAndroidChannel();
@@ -98,6 +104,29 @@ export async function scheduleSessionReminders(
   } catch {
     return { ids: null, status: "error" };
   }
+}
+
+export async function sendBehavioralReminder(input: BehavioralReminderInput) {
+  const status = await requestReminderPermissions();
+
+  if (status !== "granted") {
+    return status;
+  }
+
+  try {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        body: input.body,
+        data: { source: "dim", type: input.type },
+        title: input.title,
+      },
+      trigger: null,
+    });
+  } catch {
+    return "error";
+  }
+
+  return "granted";
 }
 
 export async function cancelSessionReminders(ids: SessionNotificationIds | null): Promise<void> {
