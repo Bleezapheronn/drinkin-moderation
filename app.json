@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.jeffreyouma.drinkinmoderation",
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -22,6 +23,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fd1b45c5-8481-4336-b313-a9be979d777d"
+      }
     }
   }
 }
