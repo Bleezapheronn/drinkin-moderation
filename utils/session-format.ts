@@ -1,0 +1,97 @@
+import type { DrinkingSession } from "../context/session";
+import { formatCurrency } from "./currency";
+import {
+  getTotalSpent,
+  stayedWithinDrinkPlan,
+  stayedWithinSpendingPlan,
+} from "./session-metrics";
+
+export function getSessionTitle(session: DrinkingSession) {
+  return session.presetName ?? "Custom session";
+}
+
+export function getSessionDateRange(session: DrinkingSession) {
+  const date = formatDate(session.startedAt);
+  const startTime = formatTime(session.startedAt);
+  const endTime = session.endedAt ? formatTime(session.endedAt) : null;
+
+  if (date === "Not recorded" || startTime === "Not recorded") {
+    return "Not recorded";
+  }
+
+  return endTime ? `${date} · ${startTime} - ${endTime}` : `${date} · ${startTime}`;
+}
+
+export function getSessionSummaryLine(session: DrinkingSession) {
+  const totalSpent = getTotalSpent(session);
+  const hasSpending = session.spendingCap !== null || session.spendingItems.length > 0;
+  const resultParts = [
+    `${session.drinkCount} ${session.drinkCount === 1 ? "drink" : "drinks"}`,
+    hasSpending ? formatCurrency(totalSpent) : null,
+    stayedWithinDrinkPlan(session) ? "Within plan" : "Over drink plan",
+    hasSpending
+      ? stayedWithinSpendingPlan(session)
+        ? "Within spending plan"
+        : "Over spending plan"
+      : null,
+  ].filter((part): part is string => Boolean(part));
+
+  return resultParts.join(" · ");
+}
+
+export function formatDate(timestamp: number | null | undefined) {
+  const date = getValidDate(timestamp);
+
+  if (!date) {
+    return "Not recorded";
+  }
+
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export function formatTime(timestamp: number | null | undefined) {
+  const date = getValidDate(timestamp);
+
+  if (!date) {
+    return "Not recorded";
+  }
+
+  return date.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function formatDuration(startedAt: number | null | undefined, endedAt: number | null) {
+  if (!startedAt || !endedAt || endedAt < startedAt) {
+    return "Unknown duration";
+  }
+
+  const durationMinutes = Math.max(1, Math.round((endedAt - startedAt) / 60000));
+  const hours = Math.floor(durationMinutes / 60);
+  const minutes = durationMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes} min`;
+  }
+
+  if (minutes === 0) {
+    return `${hours} hr`;
+  }
+
+  return `${hours} hr ${minutes} min`;
+}
+
+function getValidDate(timestamp: number | null | undefined) {
+  if (!timestamp) {
+    return null;
+  }
+
+  const date = new Date(timestamp);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}

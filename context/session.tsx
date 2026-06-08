@@ -104,6 +104,7 @@ type SessionContextValue = {
   addSpendingItem: (item: Omit<SpendingItem, "id" | "createdAt">) => void;
   updateSpendingItem: (item: SpendingItem) => void;
   deleteSpendingItem: (id: string) => void;
+  deleteCompletedSession: (sessionIndex: number) => void;
   endSession: () => void;
 };
 
@@ -167,8 +168,12 @@ export function SessionProvider({ children }: PropsWithChildren) {
     });
   };
 
-  const persistLatestCompletedSession = (nextSession: DrinkingSession) => {
-    AsyncStorage.setItem(latestCompletedSessionKey, JSON.stringify(nextSession)).catch(() => {
+  const persistLatestCompletedSession = (nextSession: DrinkingSession | null) => {
+    const write = nextSession
+      ? AsyncStorage.setItem(latestCompletedSessionKey, JSON.stringify(nextSession))
+      : AsyncStorage.removeItem(latestCompletedSessionKey);
+
+    write.catch(() => {
       setStorageError("Session summary could not be saved on this device.");
     });
   };
@@ -353,6 +358,25 @@ export function SessionProvider({ children }: PropsWithChildren) {
           return nextSession;
         });
       },
+      deleteCompletedSession: (sessionIndex) => {
+        setStorageError(null);
+        setCompletedSessions((existingSessions) => {
+          const deletedSession = existingSessions[sessionIndex] ?? null;
+          const nextSessions = existingSessions.filter((_, index) => index !== sessionIndex);
+          const nextLatestSession =
+            deletedSession &&
+            latestCompletedSession?.startedAt === deletedSession.startedAt &&
+            latestCompletedSession?.endedAt === deletedSession.endedAt
+              ? (nextSessions[0] ?? null)
+              : latestCompletedSession;
+
+          setLatestCompletedSession(nextLatestSession);
+          persistLatestCompletedSession(nextLatestSession);
+          persistCompletedSessions(nextSessions);
+
+          return nextSessions;
+        });
+      },
       endSession: () => {
         setSession((current) => {
           if (!current || current.endedAt) {
@@ -395,12 +419,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
 function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
   const legacyIntervalMinutes = session.intervalMinutes ?? 60;
+  const drinkCount = session.drinkCount ?? 0;
   const drinkLogs =
     session.drinkLogs ??
-    Array.from({ length: session.drinkCount }, (_, index) => ({
+    Array.from({ length: drinkCount }, (_, index) => ({
       id: `legacy-${session.startedAt}-${index}`,
       intervalMinutes: legacyIntervalMinutes,
-      loggedAt: session.startedAt,
+      loggedAt: session.startedAt ?? 0,
     }));
 
   return {
@@ -412,7 +437,11 @@ function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
       goHomeEnabled: false,
       goHomeTriggered: false,
     },
+    drinkCount,
     drinkLogs,
+    endedAt: session.endedAt ?? null,
+    maxDrinks: session.maxDrinks ?? Math.max(1, drinkCount),
+    nextAllowedDrinkAt: session.nextAllowedDrinkAt ?? null,
     notificationIds: session.notificationIds ?? null,
     pacing: session.pacing ?? {
       intervalMinutes: legacyIntervalMinutes,
@@ -420,7 +449,9 @@ function withDefaultSessionFields(session: DrinkingSession): DrinkingSession {
     },
     presetName: session.presetName ?? null,
     primaryDrinkType: session.primaryDrinkType ?? "Mixed",
+    spendingCap: session.spendingCap ?? null,
     spendingItems: session.spendingItems ?? [],
+    startedAt: session.startedAt ?? 0,
   };
 }
 

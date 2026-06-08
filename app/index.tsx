@@ -1,13 +1,13 @@
-import { Link } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Link, router } from "expo-router";
+import type { Href } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { DrinkingSession, useSession } from "../context/session";
-import { formatCurrency } from "../utils/currency";
 import {
-  getTotalSpent,
-  stayedWithinDrinkPlan,
-  stayedWithinSpendingPlan,
-} from "../utils/session-metrics";
+  getSessionDateRange,
+  getSessionSummaryLine,
+  getSessionTitle,
+} from "../utils/session-format";
 
 export default function HomeScreen() {
   const { completedSessions, isRestoring, session, storageError } = useSession();
@@ -53,12 +53,18 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Sessions</Text>
         {recentSessions.length > 0 ? (
-          recentSessions.map((recentSession) => (
-            <RecentSessionCard
-              key={`${recentSession.startedAt}-${recentSession.endedAt}`}
-              session={recentSession}
-            />
-          ))
+          <>
+            {recentSessions.map((recentSession, index) => (
+              <RecentSessionCard
+                key={`${recentSession.startedAt}-${recentSession.endedAt}`}
+                sessionIndex={index}
+                session={recentSession}
+              />
+            ))}
+            <Link href={"/session-history" as Href} style={styles.secondaryButton}>
+              View all sessions
+            </Link>
+          </>
         ) : (
           <Text style={styles.body}>Completed sessions will appear here after you end them.</Text>
         )}
@@ -69,47 +75,22 @@ export default function HomeScreen() {
 
 type RecentSessionCardProps = {
   session: DrinkingSession;
+  sessionIndex: number;
 };
 
-function RecentSessionCard({ session }: RecentSessionCardProps) {
-  const totalSpent = getTotalSpent(session);
-  const hasSpending = session.spendingCap !== null || session.spendingItems.length > 0;
-  const resultParts = [
-    `${session.drinkCount} ${session.drinkCount === 1 ? "drink" : "drinks"}`,
-    hasSpending ? formatCurrency(totalSpent) : null,
-    stayedWithinDrinkPlan(session) ? "Within plan" : "Over drink plan",
-    hasSpending ? (stayedWithinSpendingPlan(session) ? "Within spending plan" : "Over spending plan") : null,
-  ].filter(Boolean);
-
+function RecentSessionCard({ session, sessionIndex }: RecentSessionCardProps) {
   return (
-    <View style={styles.recentCard}>
-      <Text style={styles.recentTitle}>{session.presetName ?? "Custom session"}</Text>
-      <Text style={styles.recentDate}>{formatSessionDateRange(session)}</Text>
-      <Text style={styles.recentText}>{resultParts.join(" · ")}</Text>
-    </View>
+    <Pressable
+      onPress={() =>
+        router.push(`/session-detail/${sessionIndex}` as Href)
+      }
+      style={styles.recentCard}
+    >
+      <Text style={styles.recentTitle}>{getSessionTitle(session)}</Text>
+      <Text style={styles.recentDate}>{getSessionDateRange(session)}</Text>
+      <Text style={styles.recentText}>{getSessionSummaryLine(session)}</Text>
+    </Pressable>
   );
-}
-
-function formatSessionDateRange(session: DrinkingSession) {
-  const startedAt = new Date(session.startedAt);
-  const endedAt = session.endedAt ? new Date(session.endedAt) : null;
-  const date = startedAt.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  const startTime = startedAt.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const endTime = endedAt
-    ? endedAt.toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-      })
-    : null;
-
-  return endTime ? `${date} · ${startTime} - ${endTime}` : `${date} · ${startTime}`;
 }
 
 const styles = StyleSheet.create({
@@ -162,6 +143,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#2f6f62",
     color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    textAlign: "center",
+  },
+  secondaryButton: {
+    overflow: "hidden",
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#cfc6ba",
+    borderWidth: 1,
+    color: "#1f2a2e",
     fontSize: 16,
     fontWeight: "700",
     paddingHorizontal: 18,

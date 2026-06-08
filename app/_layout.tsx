@@ -17,6 +17,8 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: "DrinkInModeration" }} />
         <Stack.Screen name="new-session" options={{ title: "New Session" }} />
         <Stack.Screen name="active-session" options={{ title: "Active Session" }} />
+        <Stack.Screen name="session-history" options={{ title: "Session History" }} />
+        <Stack.Screen name="session-detail/[sessionId]" options={{ title: "Session Detail" }} />
         <Stack.Screen name="session-summary" options={{ title: "Session Summary" }} />
       </Stack>
       <StatusBar style="dark" />
