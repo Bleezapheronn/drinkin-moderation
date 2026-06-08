@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from "../context/session";
+import { useSettings } from "../context/settings";
 import { getPacingSummary } from "../utils/pacing";
 import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
 
@@ -24,7 +25,9 @@ type FormErrors = {
 
 export default function NewSessionScreen() {
   const { startSession } = useSession();
+  const { isRestoringSettings, settings } = useSettings();
   const [selectedPresetName, setSelectedPresetName] = useState<SessionPresetName | null>(null);
+  const [hasAppliedDefaultPreset, setHasAppliedDefaultPreset] = useState(false);
   const [pacingType, setPacingType] = useState<"fixed" | "dynamic">("fixed");
   const [firstIntervalMinutes, setFirstIntervalMinutes] = useState("60");
   const [laterIntervalMinutes, setLaterIntervalMinutes] = useState("90");
@@ -64,6 +67,18 @@ export default function NewSessionScreen() {
       setSwitchAfterDrink(preset.pacing.switchAfterDrink);
     }
   };
+
+  useEffect(() => {
+    if (
+      !isRestoringSettings &&
+      settings.defaultPreset &&
+      !selectedPresetName &&
+      !hasAppliedDefaultPreset
+    ) {
+      handlePresetSelect(settings.defaultPreset);
+      setHasAppliedDefaultPreset(true);
+    }
+  }, [hasAppliedDefaultPreset, isRestoringSettings, selectedPresetName, settings.defaultPreset]);
 
   const handleStartSession = () => {
     const nextErrors: FormErrors = {};

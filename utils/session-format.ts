@@ -1,4 +1,5 @@
 import type { DrinkingSession } from "../context/session";
+import type { CurrencyCode } from "../context/settings";
 import { formatCurrency } from "./currency";
 import {
   getTotalSpent,
@@ -22,12 +23,12 @@ export function getSessionDateRange(session: DrinkingSession) {
   return endTime ? `${date} · ${startTime} - ${endTime}` : `${date} · ${startTime}`;
 }
 
-export function getSessionSummaryLine(session: DrinkingSession) {
+export function getSessionSummaryLine(session: DrinkingSession, currency: CurrencyCode = "KES") {
   const totalSpent = getTotalSpent(session);
   const hasSpending = session.spendingCap !== null || session.spendingItems.length > 0;
   const resultParts = [
     `${session.drinkCount} ${session.drinkCount === 1 ? "drink" : "drinks"}`,
-    hasSpending ? formatCurrency(totalSpent) : null,
+    hasSpending ? formatCurrency(totalSpent, currency) : null,
     stayedWithinDrinkPlan(session) ? "Within plan" : "Over drink plan",
     hasSpending
       ? stayedWithinSpendingPlan(session)

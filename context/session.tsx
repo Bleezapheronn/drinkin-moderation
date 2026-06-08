@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
+import { useSettings } from "./settings";
 import {
   cancelAllDimSessionReminders,
   cancelSessionReminders,
@@ -105,6 +106,7 @@ type SessionContextValue = {
   updateSpendingItem: (item: SpendingItem) => void;
   deleteSpendingItem: (id: string) => void;
   deleteCompletedSession: (sessionIndex: number) => void;
+  clearCompletedSessions: () => void;
   endSession: () => void;
 };
 
@@ -114,6 +116,7 @@ const completedSessionsKey = "dim.completedSessions";
 const latestCompletedSessionKey = "dim.latestCompletedSession";
 
 export function SessionProvider({ children }: PropsWithChildren) {
+  const { settings } = useSettings();
   const [session, setSession] = useState<DrinkingSession | null>(null);
   const [completedSessions, setCompletedSessions] = useState<DrinkingSession[]>([]);
   const [latestCompletedSession, setLatestCompletedSession] = useState<DrinkingSession | null>(
@@ -202,18 +205,28 @@ export function SessionProvider({ children }: PropsWithChildren) {
   };
 
   const scheduleAndStoreReminders = async (scheduledSession: DrinkingSession) => {
-    const result = await scheduleSessionReminders(scheduledSession);
+    const result = await scheduleSessionReminders(scheduledSession, {
+      nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
+    });
 
     setReminderPermissionStatus(result.status);
     storeReminderResult(scheduledSession, result.ids);
   };
 
   const reconcileRestoredSession = async (restoredSession: DrinkingSession) => {
-    const result = await reconcileSessionReminders(restoredSession);
+    const result = await reconcileSessionReminders(restoredSession, {
+      nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
+    });
 
     setReminderPermissionStatus(result.status);
     storeReminderResult(restoredSession, result.ids);
   };
+
+  useEffect(() => {
+    if (!isRestoring && session?.nextAllowedDrinkAt) {
+      void reconcileRestoredSession(session);
+    }
+  }, [settings.nextDrinkPhoneNotifications]);
 
   const value = useMemo<SessionContextValue>(
     () => ({
@@ -268,7 +281,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setSession(nextSession);
         persistActiveSession(nextSession);
         void scheduleAndStoreReminders(nextSession);
-        void sendTriggeredBehavioralReminders(session, nextSession);
+        void sendTriggeredBehavioralReminders(
+          session,
+          nextSession,
+          settings.goHomePhoneNotifications,
+        );
       },
       undoLastDrink: () => {
         if (!session || session.endedAt || session.drinkCount <= 0) {
@@ -377,6 +394,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
           return nextSessions;
         });
       },
+      clearCompletedSessions: () => {
+        setStorageError(null);
+        setCompletedSessions([]);
+        setLatestCompletedSession(null);
+        persistCompletedSessions([]);
+        persistLatestCompletedSession(null);
+      },
       endSession: () => {
         setSession((current) => {
           if (!current || current.endedAt) {
@@ -410,6 +434,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
       latestCompletedSession,
       reminderPermissionStatus,
       session,
+      settings.goHomePhoneNotifications,
+      settings.nextDrinkPhoneNotifications,
       storageError,
     ],
   );
@@ -475,6 +501,7 @@ function getBehavioralReminderStateAfterDrink(
 async function sendTriggeredBehavioralReminders(
   previousSession: DrinkingSession,
   nextSession: DrinkingSession,
+  isGoHomePhoneNotificationEnabled: boolean,
 ) {
   if (
     !previousSession.behavioralReminders.foodTriggered &&
@@ -483,8 +510,8 @@ async function sendTriggeredBehavioralReminders(
     await sendBehavioralReminder({
       body: "Eat something before the night gets away from you.",
       title: "Food check",
-      type: "food",
-    });
+          type: "food",
+        });
   }
 
   if (
@@ -497,6 +524,7 @@ async function sendTriggeredBehavioralReminders(
       body: isHighRiskNight
         ? "This is a guardrail night. Slow down, switch to water, and leave if you can."
         : "You reached the plan you set while sober. Go home with no regrets.",
+      isPhoneNotificationEnabled: isGoHomePhoneNotificationEnabled,
       title: isHighRiskNight ? "Create an exit" : "Time to wrap up",
       type: "go-home",
     });

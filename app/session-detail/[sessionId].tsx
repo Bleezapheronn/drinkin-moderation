@@ -3,6 +3,7 @@ import type { Href } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { SpendingItem, useSession } from "../../context/session";
+import { useSettings } from "../../context/settings";
 import { formatCurrency } from "../../utils/currency";
 import { getPacingSummary } from "../../utils/pacing";
 import {
@@ -25,6 +26,7 @@ export default function SessionDetailScreen() {
     isRestoring,
     storageError,
   } = useSession();
+  const { settings } = useSettings();
   const sessionIndex = Number(sessionId);
   const session = Number.isInteger(sessionIndex) ? completedSessions[sessionIndex] : null;
 
@@ -112,10 +114,14 @@ export default function SessionDetailScreen() {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Spending</Text>
-        <DetailRow label="Total spending" value={formatCurrency(totalSpent)} />
+        <DetailRow label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
         <DetailRow
           label="Spending cap"
-          value={session.spendingCap === null ? "Not set" : formatCurrency(session.spendingCap)}
+          value={
+            session.spendingCap === null
+              ? "Not set"
+              : formatCurrency(session.spendingCap, settings.currency)
+          }
         />
         {hasSpendingPlan ? (
           <DetailRow
@@ -147,7 +153,7 @@ export default function SessionDetailScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Spending entries</Text>
           {session.spendingItems.map((item) => (
-            <SpendingEntry key={item.id} item={item} />
+            <SpendingEntry key={item.id} currency={settings.currency} item={item} />
           ))}
         </View>
       ) : null}
@@ -174,14 +180,15 @@ function DetailRow({ label, value }: DetailRowProps) {
 }
 
 type SpendingEntryProps = {
+  currency: "KES" | "USD";
   item: SpendingItem;
 };
 
-function SpendingEntry({ item }: SpendingEntryProps) {
+function SpendingEntry({ currency, item }: SpendingEntryProps) {
   return (
     <View style={styles.spendingEntry}>
       <View style={styles.spendingEntryHeader}>
-        <Text style={styles.spendingAmount}>{formatCurrency(item.amount)}</Text>
+        <Text style={styles.spendingAmount}>{formatCurrency(item.amount, currency)}</Text>
         <Text style={styles.spendingCategory}>{item.category}</Text>
       </View>
       {item.note ? <Text style={styles.spendingNote}>{item.note}</Text> : null}

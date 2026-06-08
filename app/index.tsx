@@ -3,6 +3,7 @@ import type { Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { DrinkingSession, useSession } from "../context/session";
+import { useSettings } from "../context/settings";
 import {
   getSessionDateRange,
   getSessionSummaryLine,
@@ -11,6 +12,7 @@ import {
 
 export default function HomeScreen() {
   const { completedSessions, isRestoring, session, storageError } = useSession();
+  const { settings } = useSettings();
   const recentSessions = completedSessions.slice(0, 3);
 
   return (
@@ -50,6 +52,10 @@ export default function HomeScreen() {
         )}
       </View>
 
+      <Link href="/settings" style={styles.secondaryButton}>
+        Settings
+      </Link>
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Sessions</Text>
         {recentSessions.length > 0 ? (
@@ -57,6 +63,7 @@ export default function HomeScreen() {
             {recentSessions.map((recentSession, index) => (
               <RecentSessionCard
                 key={`${recentSession.startedAt}-${recentSession.endedAt}`}
+                currency={settings.currency}
                 sessionIndex={index}
                 session={recentSession}
               />
@@ -74,11 +81,12 @@ export default function HomeScreen() {
 }
 
 type RecentSessionCardProps = {
+  currency: "KES" | "USD";
   session: DrinkingSession;
   sessionIndex: number;
 };
 
-function RecentSessionCard({ session, sessionIndex }: RecentSessionCardProps) {
+function RecentSessionCard({ currency, session, sessionIndex }: RecentSessionCardProps) {
   return (
     <Pressable
       onPress={() =>
@@ -88,7 +96,7 @@ function RecentSessionCard({ session, sessionIndex }: RecentSessionCardProps) {
     >
       <Text style={styles.recentTitle}>{getSessionTitle(session)}</Text>
       <Text style={styles.recentDate}>{getSessionDateRange(session)}</Text>
-      <Text style={styles.recentText}>{getSessionSummaryLine(session)}</Text>
+      <Text style={styles.recentText}>{getSessionSummaryLine(session, currency)}</Text>
     </Pressable>
   );
 }

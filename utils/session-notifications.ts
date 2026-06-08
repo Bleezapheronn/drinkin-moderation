@@ -24,8 +24,13 @@ export type ReminderScheduleResult = {
   status: ReminderPermissionStatus;
 };
 
+export type ReminderPreferences = {
+  nextDrinkPhoneNotifications: boolean;
+};
+
 type BehavioralReminderInput = {
   body: string;
+  isPhoneNotificationEnabled?: boolean;
   title: string;
   type: "food" | "go-home";
 };
@@ -50,11 +55,16 @@ export async function requestReminderPermissions(): Promise<ReminderPermissionSt
 
 export async function scheduleSessionReminders(
   session: DrinkingSession,
+  preferences: ReminderPreferences = { nextDrinkPhoneNotifications: true },
 ): Promise<ReminderScheduleResult> {
   try {
     await cancelSessionReminders(session.notificationIds);
 
-    if (!session.nextAllowedDrinkAt || session.nextAllowedDrinkAt <= Date.now()) {
+    if (
+      !preferences.nextDrinkPhoneNotifications ||
+      !session.nextAllowedDrinkAt ||
+      session.nextAllowedDrinkAt <= Date.now()
+    ) {
       return { ids: null, status: "granted" };
     }
 
@@ -90,6 +100,10 @@ export async function scheduleSessionReminders(
 }
 
 export async function sendBehavioralReminder(input: BehavioralReminderInput) {
+  if (input.type === "go-home" && input.isPhoneNotificationEnabled === false) {
+    return "granted";
+  }
+
   const status = await requestReminderPermissions();
 
   if (status !== "granted") {
@@ -138,8 +152,13 @@ export async function cancelAllDimSessionReminders(): Promise<void> {
 
 export async function reconcileSessionReminders(
   session: DrinkingSession,
+  preferences: ReminderPreferences = { nextDrinkPhoneNotifications: true },
 ): Promise<ReminderScheduleResult> {
-  if (!session.nextAllowedDrinkAt || session.nextAllowedDrinkAt <= Date.now()) {
+  if (
+    !preferences.nextDrinkPhoneNotifications ||
+    !session.nextAllowedDrinkAt ||
+    session.nextAllowedDrinkAt <= Date.now()
+  ) {
     await cancelSessionReminders(session.notificationIds);
     return { ids: null, status: "unknown" };
   }
@@ -148,7 +167,7 @@ export async function reconcileSessionReminders(
     return { ids: session.notificationIds, status: "granted" };
   }
 
-  return scheduleSessionReminders(session);
+  return scheduleSessionReminders(session, preferences);
 }
 
 async function areSessionRemindersScheduled(ids: SessionNotificationIds) {

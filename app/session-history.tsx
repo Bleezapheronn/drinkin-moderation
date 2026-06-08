@@ -3,6 +3,7 @@ import type { Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { DrinkingSession, useSession } from "../context/session";
+import { useSettings } from "../context/settings";
 import {
   getSessionDateRange,
   getSessionSummaryLine,
@@ -11,6 +12,7 @@ import {
 
 export default function SessionHistoryScreen() {
   const { completedSessions, isRestoring, storageError } = useSession();
+  const { settings } = useSettings();
 
   if (isRestoring) {
     return (
@@ -39,6 +41,7 @@ export default function SessionHistoryScreen() {
           {completedSessions.map((session, index) => (
             <HistoryCard
               key={`${session.startedAt}-${session.endedAt}`}
+              currency={settings.currency}
               sessionIndex={index}
               session={session}
             />
@@ -57,11 +60,12 @@ export default function SessionHistoryScreen() {
 }
 
 type HistoryCardProps = {
+  currency: "KES" | "USD";
   session: DrinkingSession;
   sessionIndex: number;
 };
 
-function HistoryCard({ session, sessionIndex }: HistoryCardProps) {
+function HistoryCard({ currency, session, sessionIndex }: HistoryCardProps) {
   return (
     <Pressable
       onPress={() =>
@@ -71,7 +75,7 @@ function HistoryCard({ session, sessionIndex }: HistoryCardProps) {
     >
       <Text style={styles.cardTitle}>{getSessionTitle(session)}</Text>
       <Text style={styles.cardMeta}>{getSessionDateRange(session)}</Text>
-      <Text style={styles.cardText}>{getSessionSummaryLine(session)}</Text>
+      <Text style={styles.cardText}>{getSessionSummaryLine(session, currency)}</Text>
     </Pressable>
   );
 }

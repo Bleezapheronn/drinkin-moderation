@@ -13,6 +13,7 @@ import {
 
 import { DrinkProgressVisual } from "../components/DrinkProgressVisual";
 import { DrinkingSession, SpendingCategory, useSession } from "../context/session";
+import { useSettings } from "../context/settings";
 import { formatCurrency } from "../utils/currency";
 import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
 import { getTotalSpent } from "../utils/session-metrics";
@@ -38,6 +39,7 @@ export default function ActiveSessionScreen() {
     undoLastDrink,
     updateSpendingItem,
   } = useSession();
+  const { settings } = useSettings();
   const [now, setNow] = useState(Date.now());
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [isSpendingListExpanded, setIsSpendingListExpanded] = useState(false);
@@ -75,7 +77,13 @@ export default function ActiveSessionScreen() {
     [remainingSeconds, session],
   );
   const waterBanner = session
-    ? getWaterBannerState(session, now, remainingSeconds, dismissedWaterLogId)
+    ? getWaterBannerState(
+        session,
+        now,
+        remainingSeconds,
+        dismissedWaterLogId,
+        settings.waterReminder === "in-app",
+      )
     : null;
 
   const resetSpendingForm = () => {
@@ -281,9 +289,9 @@ export default function ActiveSessionScreen() {
         <View style={styles.quickStats}>
           <QuickStat label="Drinks left" value={`${drinksLeft}`} />
           {remainingBudget !== null ? (
-            <QuickStat label="Spending left" value={formatCurrency(remainingBudget)} />
+            <QuickStat label="Spending left" value={formatCurrency(remainingBudget, settings.currency)} />
           ) : session.spendingItems.length > 0 ? (
-            <QuickStat label="Total spending" value={formatCurrency(totalSpent)} />
+            <QuickStat label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
           ) : null}
         </View>
 
@@ -390,9 +398,13 @@ export default function ActiveSessionScreen() {
             />
             <Metric
               label="Spending cap"
-              value={session.spendingCap === null ? "Not set" : formatCurrency(session.spendingCap)}
+              value={
+                session.spendingCap === null
+                  ? "Not set"
+                  : formatCurrency(session.spendingCap, settings.currency)
+              }
             />
-            <Metric label="Total spending" value={formatCurrency(totalSpent)} />
+            <Metric label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
           </View>
         </CollapsibleSection>
 
@@ -406,7 +418,9 @@ export default function ActiveSessionScreen() {
               {session.spendingItems.map((item) => (
                 <View key={item.id} style={styles.entryRow}>
                   <View style={styles.entryTextBlock}>
-                    <Text style={styles.entryAmount}>{formatCurrency(item.amount)}</Text>
+                    <Text style={styles.entryAmount}>
+                      {formatCurrency(item.amount, settings.currency)}
+                    </Text>
                     <Text style={styles.entryMeta}>{item.category}</Text>
                     {item.note ? <Text style={styles.entryNote}>{item.note}</Text> : null}
                   </View>
@@ -610,10 +624,16 @@ function getWaterBannerState(
   now: number,
   remainingSeconds: number,
   dismissedLogId: string | null,
+  isWaterReminderEnabled: boolean,
 ) {
   const latestDrinkLog = session.drinkLogs.at(-1);
 
-  if (!latestDrinkLog || !session.nextAllowedDrinkAt || remainingSeconds <= 0) {
+  if (
+    !isWaterReminderEnabled ||
+    !latestDrinkLog ||
+    !session.nextAllowedDrinkAt ||
+    remainingSeconds <= 0
+  ) {
     return null;
   }
 
