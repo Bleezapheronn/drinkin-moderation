@@ -3,13 +3,24 @@
     "name": "DrinkInModeration",
     "slug": "drinkin-moderation",
     "version": "1.0.0",
+    "description": "Make a sober plan. Keep it.",
+    "icon": "./assets/icon.png",
     "orientation": "portrait",
     "scheme": "drinkinmoderation",
     "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f7f4ef"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1f2a2e"
+      },
       "package": "com.jeffreyouma.drinkinmoderation",
       "predictiveBackGestureEnabled": false
     },
