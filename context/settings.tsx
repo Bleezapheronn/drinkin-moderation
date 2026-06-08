@@ -16,6 +16,7 @@ export type AppSettings = {
   defaultPreset: DefaultPresetSetting;
   goHomePhoneNotifications: boolean;
   nextDrinkPhoneNotifications: boolean;
+  onboardingCompleted: boolean;
   waterReminder: WaterReminderPreference;
 };
 
@@ -31,6 +32,7 @@ const defaultSettings: AppSettings = {
   defaultPreset: null,
   goHomePhoneNotifications: true,
   nextDrinkPhoneNotifications: true,
+  onboardingCompleted: false,
   waterReminder: "in-app",
 };
 
@@ -96,6 +98,7 @@ function parseSettings(value: string): AppSettings {
       : null,
     goHomePhoneNotifications: parsedSettings.goHomePhoneNotifications ?? true,
     nextDrinkPhoneNotifications: parsedSettings.nextDrinkPhoneNotifications ?? true,
+    onboardingCompleted: parsedSettings.onboardingCompleted ?? false,
     waterReminder: parsedSettings.waterReminder === "off" ? "off" : "in-app",
   };
 }

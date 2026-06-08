@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -24,6 +24,7 @@ type FormErrors = {
 };
 
 export default function NewSessionScreen() {
+  const { preset } = useLocalSearchParams<{ preset?: string }>();
   const { startSession } = useSession();
   const { isRestoringSettings, settings } = useSettings();
   const [selectedPresetName, setSelectedPresetName] = useState<SessionPresetName | null>(null);
@@ -71,14 +72,20 @@ export default function NewSessionScreen() {
   useEffect(() => {
     if (
       !isRestoringSettings &&
-      settings.defaultPreset &&
+      (preset || settings.defaultPreset) &&
       !selectedPresetName &&
       !hasAppliedDefaultPreset
     ) {
-      handlePresetSelect(settings.defaultPreset);
+      handlePresetSelect((preset || settings.defaultPreset) as SessionPresetName);
       setHasAppliedDefaultPreset(true);
     }
-  }, [hasAppliedDefaultPreset, isRestoringSettings, selectedPresetName, settings.defaultPreset]);
+  }, [
+    hasAppliedDefaultPreset,
+    isRestoringSettings,
+    preset,
+    selectedPresetName,
+    settings.defaultPreset,
+  ]);
 
   const handleStartSession = () => {
     const nextErrors: FormErrors = {};

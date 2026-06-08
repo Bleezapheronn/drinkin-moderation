@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { router } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useSettings } from "../context/settings";
@@ -158,12 +159,31 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Onboarding</Text>
+        <Text style={styles.body}>Review the short introduction to DIM again.</Text>
+        <Pressable
+          onPress={() => {
+            updateSettings({ onboardingCompleted: false });
+            router.push("/onboarding");
+          }}
+          style={styles.secondaryButton}
+        >
+          <Text style={styles.secondaryButtonText}>Show onboarding again</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.card}>
         <Text style={styles.sectionTitle}>App info</Text>
         <InfoRow label="App name" value="DrinkInModeration" />
         <InfoRow label="Short name" value="DIM" />
         <InfoRow label="Tagline" value="Make a sober plan. Keep it." />
         <InfoRow label="Version" value={appVersion} />
         <Text style={styles.note}>DIM stores your session data locally on this device.</Text>
+        <Text style={styles.note}>
+          DIM is a planning and harm-reduction tool. It is not medical advice. If alcohol is
+          causing repeated harm or feels difficult to control, consider speaking with a qualified
+          professional.
+        </Text>
       </View>
     </ScrollView>
   );
@@ -327,6 +347,20 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: "#9b3f3f",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  secondaryButton: {
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#cfc6ba",
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  secondaryButtonText: {
+    color: "#1f2a2e",
     fontSize: 16,
     fontWeight: "800",
   },
