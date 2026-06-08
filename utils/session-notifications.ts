@@ -77,27 +77,10 @@ export async function scheduleSessionReminders(
       },
     });
 
-    const waterReminderAt = getWaterReminderTime(session);
-    const waterReminderId =
-      waterReminderAt && waterReminderAt > Date.now()
-        ? await Notifications.scheduleNotificationAsync({
-            content: {
-              body: "Have some water and slow the pace.",
-              data: { source: "dim", type: "water" },
-              title: "Water check",
-            },
-            trigger: {
-              channelId: dimNotificationChannelId,
-              date: new Date(waterReminderAt),
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-            },
-          })
-        : null;
-
     return {
       ids: {
         nextDrinkReminderId,
-        waterReminderId,
+        waterReminderId: null,
       },
       status: "granted",
     };
@@ -199,16 +182,4 @@ async function ensureAndroidChannel() {
     importance: Notifications.AndroidImportance.DEFAULT,
     name: "DIM session reminders",
   });
-}
-
-function getWaterReminderTime(session: DrinkingSession) {
-  if (!session.nextAllowedDrinkAt) {
-    return null;
-  }
-
-  const latestDrinkLog = session.drinkLogs.at(-1);
-  const intervalMilliseconds = (latestDrinkLog?.intervalMinutes ?? session.intervalMinutes) * 60 * 1000;
-  const reminderTime = session.nextAllowedDrinkAt - intervalMilliseconds / 2;
-
-  return reminderTime > Date.now() ? reminderTime : null;
 }

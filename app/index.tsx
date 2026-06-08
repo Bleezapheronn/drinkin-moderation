@@ -54,7 +54,10 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Recent Sessions</Text>
         {recentSessions.length > 0 ? (
           recentSessions.map((recentSession) => (
-            <RecentSessionCard key={`${recentSession.startedAt}-${recentSession.endedAt}`} session={recentSession} />
+            <RecentSessionCard
+              key={`${recentSession.startedAt}-${recentSession.endedAt}`}
+              session={recentSession}
+            />
           ))
         ) : (
           <Text style={styles.body}>Completed sessions will appear here after you end them.</Text>
@@ -69,23 +72,44 @@ type RecentSessionCardProps = {
 };
 
 function RecentSessionCard({ session }: RecentSessionCardProps) {
+  const totalSpent = getTotalSpent(session);
+  const hasSpending = session.spendingCap !== null || session.spendingItems.length > 0;
+  const resultParts = [
+    `${session.drinkCount} ${session.drinkCount === 1 ? "drink" : "drinks"}`,
+    hasSpending ? formatCurrency(totalSpent) : null,
+    stayedWithinDrinkPlan(session) ? "Within plan" : "Over drink plan",
+    hasSpending ? (stayedWithinSpendingPlan(session) ? "Within spending plan" : "Over spending plan") : null,
+  ].filter(Boolean);
+
   return (
     <View style={styles.recentCard}>
-      <Text style={styles.recentDate}>
-        {new Date(session.endedAt ?? session.startedAt).toLocaleString()}
-      </Text>
-      <View style={styles.recentRows}>
-        <Text style={styles.recentText}>Drinks: {session.drinkCount}</Text>
-        <Text style={styles.recentText}>Spending: {formatCurrency(getTotalSpent(session))}</Text>
-        <Text style={styles.recentText}>
-          Drink plan: {stayedWithinDrinkPlan(session) ? "Within plan" : "Over plan"}
-        </Text>
-        <Text style={styles.recentText}>
-          Spending plan: {stayedWithinSpendingPlan(session) ? "Within plan" : "Over plan"}
-        </Text>
-      </View>
+      <Text style={styles.recentTitle}>{session.presetName ?? "Custom session"}</Text>
+      <Text style={styles.recentDate}>{formatSessionDateRange(session)}</Text>
+      <Text style={styles.recentText}>{resultParts.join(" · ")}</Text>
     </View>
   );
+}
+
+function formatSessionDateRange(session: DrinkingSession) {
+  const startedAt = new Date(session.startedAt);
+  const endedAt = session.endedAt ? new Date(session.endedAt) : null;
+  const date = startedAt.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const startTime = startedAt.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const endTime = endedAt
+    ? endedAt.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+
+  return endTime ? `${date} · ${startTime} - ${endTime}` : `${date} · ${startTime}`;
 }
 
 const styles = StyleSheet.create({
@@ -153,20 +177,23 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   recentCard: {
-    gap: 10,
+    gap: 6,
     padding: 16,
     borderRadius: 8,
     backgroundColor: "#ffffff",
     borderColor: "#e5ded3",
     borderWidth: 1,
   },
-  recentDate: {
+  recentTitle: {
     color: "#1f2a2e",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "800",
   },
-  recentRows: {
-    gap: 4,
+  recentDate: {
+    color: "#52605f",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 21,
   },
   recentText: {
     color: "#52605f",
