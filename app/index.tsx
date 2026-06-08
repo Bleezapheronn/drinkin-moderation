@@ -57,9 +57,14 @@ export default function HomeScreen() {
           <Text style={styles.title}>DrinkInModeration</Text>
           <Text style={styles.subtitle}>Make a sober plan. Keep it.</Text>
         </View>
-        <Link href="/settings" style={styles.settingsButton}>
-          Settings
-        </Link>
+        <Pressable
+          accessibilityLabel="Settings"
+          accessibilityRole="button"
+          onPress={() => router.push("/settings" as Href)}
+          style={styles.settingsButton}
+        >
+          <Text style={styles.settingsButtonText}>⚙</Text>
+        </Pressable>
       </View>
 
       {storageError ? (
@@ -263,17 +268,20 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   settingsButton: {
-    overflow: "hidden",
+    alignItems: "center",
     borderRadius: 8,
     backgroundColor: "#ffffff",
     borderColor: "#cfc6ba",
     borderWidth: 1,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  settingsButtonText: {
     color: "#1f2a2e",
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: "800",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    textAlign: "center",
+    lineHeight: 22,
   },
   card: {
     gap: 16,
