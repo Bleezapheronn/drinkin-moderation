@@ -12,7 +12,7 @@ Manual phone timers are clunky during social drinking, and relying on judgment a
 
 ## Why I Built This
 
-I built DIM after realizing that my best drinking sessions happened when I followed a simple pacing rule, but using a manual phone timer was cumbersome. I wanted to turn that behavioral strategy into a practical mobile app while learning a Codex-first development workflow.
+I built DIM to turn a simple harm-reduction strategy into a practical mobile product: make the important decisions while sober, then use the app to keep pacing, limits, and spending visible during the session. The project also gave me a focused way to learn a Codex-first development workflow while building something grounded in a real user need.
 
 ## Core Concept
 
