@@ -35,7 +35,7 @@
         {
           "sounds": [
             "./assets/sounds/interval.mp3",
-            "./assets/sounds/go-home.mp3"
+            "./assets/sounds/go_home.mp3"
           ]
         }
       ]

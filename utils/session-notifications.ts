@@ -12,7 +12,7 @@ const fallbackSoundSetting: ReminderSoundSetting = {
 };
 
 const builtInSoundFiles: Record<PhoneReminderKind, string> = {
-  "go-home": "go-home.mp3",
+  "go-home": "go_home.mp3",
   interval: "interval.mp3",
 };
 
