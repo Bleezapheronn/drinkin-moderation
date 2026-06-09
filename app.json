@@ -21,7 +21,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1f2a2e"
       },
-      "package": "com.jeffreyouma.drinkinmoderation",
+      "package": "com.bleezapheronn.onemoredrink",
       "predictiveBackGestureEnabled": false
     },
     "web": {
