@@ -16,7 +16,7 @@ export default function RootLayout() {
             headerTitleStyle: { fontWeight: "700" },
           }}
         >
-          <Stack.Screen name="index" options={{ title: "DrinkInModeration" }} />
+          <Stack.Screen name="index" options={{ title: "One More Drink" }} />
           <Stack.Screen name="onboarding" options={{ headerShown: false }} />
           <Stack.Screen name="new-session" options={{ title: "New Session" }} />
           <Stack.Screen name="active-session" options={{ title: "Active Session" }} />

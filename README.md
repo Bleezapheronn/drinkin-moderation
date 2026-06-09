@@ -1,22 +1,22 @@
-# DrinkInModeration
+# One More Drink
 
-**Make a sober plan. Keep it.**
+**Make a sober plan. Stick to it.**
 
-DrinkInModeration, or DIM, is a React Native Expo mobile app for alcohol harm reduction. It helps a user make a clear plan before drinking, then keeps pacing, spending, and session guardrails visible once the session starts.
+One More Drink, or OMD, is a React Native Expo mobile app for alcohol harm reduction. The name is intentionally cheeky, but the purpose is serious: help a user make a clear sober plan before drinking, then keep pacing, spending, and session guardrails visible once the session starts.
 
-DIM is not designed to encourage drinking. It is a sober pre-commitment assistant and personal behavior design project built as a React Native / Expo portfolio app.
+OMD is not designed to encourage drinking. It is a sober pre-commitment and pacing assistant that helps users pause before the next drink, respect their limits, track spending, and end the session with fewer regrets.
 
 ## Problem Statement
 
-Manual phone timers are clunky during social drinking, and relying on judgment after a few drinks is unreliable. DIM helps users set a plan before drinking, then keeps timing, spending, and session guardrails visible.
+Manual phone timers are clunky during social drinking, and relying on judgment after a few drinks is unreliable. OMD helps users set a plan before drinking, then keeps timing, spending, and session guardrails visible.
 
 ## Why I Built This
 
-I built DIM to turn a simple harm-reduction strategy into a practical mobile product: make the important decisions while sober, then use the app to keep pacing, limits, and spending visible during the session. The project also gave me a focused way to learn a Codex-first development workflow while building something grounded in a real user need.
+I built OMD to turn a simple harm-reduction strategy into a practical mobile product: make the important decisions while sober, then use the app to keep pacing, limits, and spending visible during the session. The project also gave me a focused way to learn a Codex-first development workflow while building something grounded in a real user need.
 
 ## Core Concept
 
-The user makes the plan while sober. DIM helps protect that plan later by making the next decision easier:
+The user makes the plan while sober. OMD helps protect that plan later by making the next decision easier:
 
 - How many drinks are left?
 - Is the next drink window open?
@@ -37,7 +37,7 @@ The tone is calm, practical, direct, and non-judgmental.
 
 ## Features
 
-- First-run onboarding with the core DIM concept
+- First-run onboarding with the core OMD concept
 - Quick-start session presets:
   - Solo / Home
   - Drinks @Home w/ Company
@@ -99,7 +99,7 @@ Start the app for a development build:
 npx expo start --dev-client
 ```
 
-Expo Go may not be sufficient for all testing because DIM uses native notification behavior and has a custom development build setup.
+Expo Go may not be sufficient for all testing because OMD uses native notification behavior and has a custom development build setup.
 
 ## Running Locally
 
@@ -135,7 +135,7 @@ After installing the development build on the phone, start Metro:
 npx expo start --dev-client
 ```
 
-Open the installed DIM development build and connect to the Metro URL shown in the terminal.
+Open the installed OMD development build and connect to the Metro URL shown in the terminal.
 
 ## Preview APK Build
 
@@ -149,11 +149,11 @@ The preview profile is configured for APK output in `eas.json`.
 
 ## Privacy
 
-DIM stores session data locally on the device. The MVP does not use accounts, cloud sync, analytics, or a backend.
+OMD stores session data locally on the device. The MVP does not use accounts, cloud sync, analytics, or a backend.
 
 ## Harm-Reduction Disclaimer
 
-DIM is a planning and harm-reduction tool, not medical advice. If alcohol is causing repeated harm or feels difficult to control, consider speaking with a qualified professional.
+One More Drink is a planning and harm-reduction tool, not medical advice. If alcohol is causing repeated harm or feels difficult to control, consider speaking with a qualified professional.
 
 ## Roadmap
 

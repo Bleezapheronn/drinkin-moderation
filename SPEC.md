@@ -1,14 +1,14 @@
-# DrinkInModeration (DIM) — Product Spec
+# One More Drink (OMD) - Product Spec
 
 ## Purpose
 
-DrinkInModeration (DIM) is a harm-reduction mobile app that helps users stick to a sober pre-commitment when drinking.
+One More Drink (OMD) is a harm-reduction mobile app that helps users stick to a sober pre-commitment when drinking.
 
-The app is not designed to encourage drinking. It is designed to help users pace themselves, avoid blackouts, respect a drink maximum, control spending, and end the night while still in control.
+The name is intentionally cheeky, but the app is not designed to encourage drinking. It is designed to help users pace themselves, avoid blackouts, respect a drink maximum, control spending, and end the night while still in control.
 
 ## Core Philosophy
 
-The user makes the plan while sober. DIM helps protect that plan once drinking has started.
+The user makes the plan while sober. OMD helps protect that plan once drinking has started.
 
 Tone should be calm, non-judgmental, practical, and direct.
 
@@ -30,8 +30,8 @@ The MVP should allow a user to:
 
 ### Home
 
-- App name: DrinkInModeration
-- Short tagline
+- App name: One More Drink
+- Short tagline: Make a sober plan. Stick to it.
 - Button to start a new session
 - Button to view past sessions, if implemented
 

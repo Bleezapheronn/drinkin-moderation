@@ -35,7 +35,7 @@ const waterReminderOptions: { label: string; value: WaterReminderPreference }[] 
 const reminderSoundOptions: { label: string; value: ReminderSoundChoice }[] = [
   { label: "System default", value: "system" },
   { label: "Silent / vibrate only", value: "silent" },
-  { label: "Built-in DIM sound", value: "built-in" },
+  { label: "Built-in OMD sound", value: "built-in" },
   { label: "Choose audio file from device", value: "device-file" },
 ];
 
@@ -74,7 +74,7 @@ export default function SettingsScreen() {
         },
       });
     } catch {
-      Alert.alert("Audio file not selected", "DIM could not open the audio picker on this device.");
+      Alert.alert("Audio file not selected", "OMD could not open the audio picker on this device.");
     }
   };
 
@@ -94,7 +94,7 @@ export default function SettingsScreen() {
       return;
     }
 
-    Alert.alert("Test failed", "DIM could not schedule the test notification on this device.");
+    Alert.alert("Test failed", "OMD could not schedule the test notification on this device.");
   };
 
   const confirmClearCompletedSessions = () => {
@@ -260,7 +260,7 @@ export default function SettingsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Onboarding</Text>
-        <Text style={styles.body}>Review the short introduction to DIM again.</Text>
+        <Text style={styles.body}>Review the short introduction to OMD again.</Text>
         <Pressable
           onPress={() => {
             updateSettings({ onboardingCompleted: false });
@@ -274,13 +274,13 @@ export default function SettingsScreen() {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>App info</Text>
-        <InfoRow label="App name" value="DrinkInModeration" />
-        <InfoRow label="Short name" value="DIM" />
-        <InfoRow label="Tagline" value="Make a sober plan. Keep it." />
+        <InfoRow label="App name" value="One More Drink" />
+        <InfoRow label="Short name" value="OMD" />
+        <InfoRow label="Tagline" value="Make a sober plan. Stick to it." />
         <InfoRow label="Version" value={appVersion} />
-        <Text style={styles.note}>DIM stores your session data locally on this device.</Text>
+        <Text style={styles.note}>OMD stores your session data locally on this device.</Text>
         <Text style={styles.note}>
-          DIM is a planning and harm-reduction tool. It is not medical advice. If alcohol is
+          One More Drink is a planning and harm-reduction tool. It is not medical advice. If alcohol is
           causing repeated harm or feels difficult to control, consider speaking with a qualified
           professional.
         </Text>
@@ -325,7 +325,7 @@ function ReminderSoundPicker({
       </View>
       {setting.choice === "built-in" ? (
         <Text style={styles.note}>
-          Uses the bundled DIM sound in development and preview builds. Expo Go may still use the
+          Uses the bundled OMD sound in development and preview builds. Expo Go may still use the
           system default.
         </Text>
       ) : null}

@@ -43,7 +43,7 @@ export default function HomeScreen() {
   if (isRestoringSettings || !settings.onboardingCompleted) {
     return (
       <View style={styles.loadingScreen}>
-        <Text style={styles.kicker}>DIM</Text>
+        <Text style={styles.kicker}>OMD</Text>
         <Text style={styles.body}>Getting the app ready.</Text>
       </View>
     );
@@ -53,9 +53,9 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.topBar}>
         <View style={styles.brandBlock}>
-          <Text style={styles.kicker}>DIM</Text>
-          <Text style={styles.title}>DrinkInModeration</Text>
-          <Text style={styles.subtitle}>Make a sober plan. Keep it.</Text>
+          <Text style={styles.kicker}>OMD</Text>
+          <Text style={styles.title}>One More Drink</Text>
+          <Text style={styles.subtitle}>Make a sober plan. Stick to it.</Text>
         </View>
         <Pressable
           accessibilityLabel="Settings"
@@ -134,7 +134,7 @@ export default function HomeScreen() {
       </View>
 
       <Text style={styles.privacyNote}>
-        DIM stores your session data locally on this device.
+        OMD stores your session data locally on this device.
       </Text>
     </ScrollView>
   );

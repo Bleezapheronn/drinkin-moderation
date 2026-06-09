@@ -10,8 +10,8 @@ const onboardingSteps = [
     title: "Make the plan while sober",
   },
   {
-    body: "DIM tracks the interval, reminds you when the drink window is open, and keeps the plan visible.",
-    title: "Let DIM handle the timing",
+    body: "OMD tracks the interval, reminds you when the drink window is open, and keeps the plan visible.",
+    title: "Let OMD handle the timing",
   },
   {
     body: "Afterward, review what happened and adjust your next plan.",
@@ -38,8 +38,8 @@ export default function OnboardingScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.kicker}>DIM</Text>
-        <Text style={styles.tagline}>Make a sober plan. Keep it.</Text>
+        <Text style={styles.kicker}>OMD</Text>
+        <Text style={styles.tagline}>Make a sober plan. Stick to it.</Text>
       </View>
 
       <View style={styles.card}>
@@ -61,7 +61,7 @@ export default function OnboardingScreen() {
 
       <Pressable onPress={handleNext} style={styles.primaryButton}>
         <Text style={styles.primaryButtonText}>
-          {isFinalStep ? "Start using DIM" : "Next"}
+          {isFinalStep ? "Start using OMD" : "Next"}
         </Text>
       </Pressable>
     </View>

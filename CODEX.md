@@ -1,6 +1,6 @@
-# Codex Instructions for DrinkInModeration
+# Codex Instructions for One More Drink
 
-You are helping build DrinkInModeration, a React Native Expo TypeScript app.
+You are helping build One More Drink, a React Native Expo TypeScript app.
 
 Follow these rules:
 

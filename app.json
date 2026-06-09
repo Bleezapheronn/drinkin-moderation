@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "DrinkInModeration",
-    "slug": "drinkin-moderation",
+    "name": "One More Drink",
+    "slug": "one-more-drink",
     "version": "1.0.0",
-    "description": "Make a sober plan. Keep it.",
+    "description": "Make a sober plan. Stick to it.",
     "icon": "./assets/icon.png",
     "orientation": "portrait",
-    "scheme": "drinkinmoderation",
+    "scheme": "onemoredrink",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -26,7 +26,7 @@
     },
     "web": {
       "output": "static",
-      "shortName": "DIM"
+      "shortName": "OMD"
     },
     "plugins": [
       "expo-router",

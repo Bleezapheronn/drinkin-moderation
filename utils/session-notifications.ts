@@ -32,7 +32,7 @@ const notificationChannels: Record<
   },
 };
 
-// DIM uses only local notification APIs here. Expo Go may still log its Android
+// OMD uses only local notification APIs here. Expo Go may still log its Android
 // remote push warning when this module imports expo-notifications; we do not call
 // push token APIs or configure remote push delivery.
 Notifications.setNotificationHandler({
@@ -341,8 +341,8 @@ async function ensureAndroidReminderChannel(channelId: string, sound?: string | 
 
 function getAndroidChannelName(channelId: string) {
   if (channelId.includes("go-home")) {
-    return channelId.includes("silent") ? "DIM go-home reminders silent" : "DIM go-home reminders";
+    return channelId.includes("silent") ? "OMD go-home reminders silent" : "OMD go-home reminders";
   }
 
-  return channelId.includes("silent") ? "DIM interval reminders silent" : "DIM interval reminders";
+  return channelId.includes("silent") ? "OMD interval reminders silent" : "OMD interval reminders";
 }
