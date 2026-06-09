@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import * as DocumentPicker from "expo-document-picker";
 import { router } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -6,9 +7,12 @@ import { useSettings } from "../context/settings";
 import type {
   CurrencyCode,
   DefaultPresetSetting,
+  ReminderSoundChoice,
+  ReminderSoundSetting,
   WaterReminderPreference,
 } from "../context/settings";
 import { useSession } from "../context/session";
+import { scheduleTestReminderSound } from "../utils/session-notifications";
 
 const presetOptions: { label: string; value: DefaultPresetSetting }[] = [
   { label: "None / Ask every time", value: null },
@@ -28,10 +32,70 @@ const waterReminderOptions: { label: string; value: WaterReminderPreference }[] 
   { label: "Off", value: "off" },
 ];
 
+const reminderSoundOptions: { label: string; value: ReminderSoundChoice }[] = [
+  { label: "System default", value: "system" },
+  { label: "Silent / vibrate only", value: "silent" },
+  { label: "Built-in DIM sound", value: "built-in" },
+  { label: "Choose audio file from device", value: "device-file" },
+];
+
 export default function SettingsScreen() {
   const { completedSessions, clearCompletedSessions } = useSession();
   const { isRestoringSettings, settings, settingsError, updateSettings } = useSettings();
   const appVersion = Constants.expoConfig?.version ?? "Not recorded";
+
+  const chooseAudioFile = async (settingKey: "goHomeReminderSound" | "intervalReminderSound") => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        copyToCacheDirectory: true,
+        multiple: false,
+        type: "audio/*",
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const audioFile = result.assets[0];
+
+      if (!audioFile) {
+        return;
+      }
+
+      updateSettings({
+        [settingKey]: {
+          choice: "device-file",
+          deviceFile: {
+            mimeType: audioFile.mimeType ?? null,
+            name: audioFile.name,
+            size: audioFile.size ?? null,
+            uri: audioFile.uri,
+          },
+        },
+      });
+    } catch {
+      Alert.alert("Audio file not selected", "DIM could not open the audio picker on this device.");
+    }
+  };
+
+  const testReminderSound = async (
+    kind: "go-home" | "interval",
+    soundSetting: ReminderSoundSetting,
+  ) => {
+    const status = await scheduleTestReminderSound(kind, soundSetting);
+
+    if (status === "granted") {
+      Alert.alert("Test scheduled", "A local test notification should arrive in a few seconds.");
+      return;
+    }
+
+    if (status === "denied") {
+      Alert.alert("Notifications are off", "Enable notifications to test reminder sounds.");
+      return;
+    }
+
+    Alert.alert("Test failed", "DIM could not schedule the test notification on this device.");
+  };
 
   const confirmClearCompletedSessions = () => {
     Alert.alert(
@@ -135,6 +199,42 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Reminder sounds</Text>
+        <Text style={styles.body}>
+          Device audio file support is experimental. Some Android notification sounds must be
+          bundled with the app.
+        </Text>
+        <ReminderSoundPicker
+          label="Interval reminder sound"
+          onChooseFile={() => chooseAudioFile("intervalReminderSound")}
+          onSelect={(choice) =>
+            updateSettings({
+              intervalReminderSound: {
+                ...settings.intervalReminderSound,
+                choice,
+              },
+            })
+          }
+          onTest={() => testReminderSound("interval", settings.intervalReminderSound)}
+          setting={settings.intervalReminderSound}
+        />
+        <ReminderSoundPicker
+          label="Go-home reminder sound"
+          onChooseFile={() => chooseAudioFile("goHomeReminderSound")}
+          onSelect={(choice) =>
+            updateSettings({
+              goHomeReminderSound: {
+                ...settings.goHomeReminderSound,
+                choice,
+              },
+            })
+          }
+          onTest={() => testReminderSound("go-home", settings.goHomeReminderSound)}
+          setting={settings.goHomeReminderSound}
+        />
+      </View>
+
+      <View style={styles.card}>
         <Text style={styles.sectionTitle}>Data management</Text>
         <Text style={styles.body}>
           This deletes completed session history only. It does not delete an active session.
@@ -195,6 +295,67 @@ type OptionButtonProps = {
   onPress: () => void;
 };
 
+type ReminderSoundPickerProps = {
+  label: string;
+  onChooseFile: () => void;
+  onSelect: (choice: ReminderSoundChoice) => void;
+  onTest: () => void;
+  setting: ReminderSoundSetting;
+};
+
+function ReminderSoundPicker({
+  label,
+  onChooseFile,
+  onSelect,
+  onTest,
+  setting,
+}: ReminderSoundPickerProps) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.optionGrid}>
+        {reminderSoundOptions.map((option) => (
+          <OptionButton
+            key={option.value}
+            isSelected={setting.choice === option.value}
+            label={option.label}
+            onPress={() => onSelect(option.value)}
+          />
+        ))}
+      </View>
+      {setting.choice === "built-in" ? (
+        <Text style={styles.note}>
+          Uses the bundled DIM sound in development and preview builds. Expo Go may still use the
+          system default.
+        </Text>
+      ) : null}
+      {setting.choice === "device-file" ? (
+        <View style={styles.inlinePanel}>
+          <Text style={styles.note}>
+            Selected device files are saved locally for exploration, but Android notification sounds
+            usually need bundled app assets. Notifications will fall back to the system default.
+          </Text>
+          {setting.deviceFile ? (
+            <Text style={styles.fileSummary}>
+              {setting.deviceFile.name}
+              {setting.deviceFile.size ? ` · ${formatFileSize(setting.deviceFile.size)}` : ""}
+              {setting.deviceFile.mimeType ? ` · ${setting.deviceFile.mimeType}` : ""}
+            </Text>
+          ) : (
+            <Text style={styles.note}>No audio file selected yet.</Text>
+          )}
+          <Pressable onPress={onChooseFile} style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>Choose audio file</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <Pressable onPress={onTest} style={styles.secondaryButton}>
+        <Text style={styles.secondaryButtonText}>Test {label.toLowerCase()}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function OptionButton({ isSelected, label, onPress }: OptionButtonProps) {
   return (
     <Pressable
@@ -239,6 +400,18 @@ function InfoRow({ label, value }: InfoRowProps) {
   );
 }
 
+function formatFileSize(size: number) {
+  if (size >= 1024 * 1024) {
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  if (size >= 1024) {
+    return `${Math.round(size / 1024)} KB`;
+  }
+
+  return `${size} bytes`;
+}
+
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
@@ -275,10 +448,24 @@ const styles = StyleSheet.create({
   field: {
     gap: 8,
   },
+  inlinePanel: {
+    gap: 10,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#f7f4ef",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
   label: {
     color: "#52605f",
     fontSize: 14,
     fontWeight: "700",
+  },
+  fileSummary: {
+    color: "#1f2a2e",
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 20,
   },
   optionRow: {
     flexDirection: "row",

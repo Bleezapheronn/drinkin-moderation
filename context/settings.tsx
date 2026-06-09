@@ -10,11 +10,26 @@ export type DefaultPresetSetting =
 
 export type CurrencyCode = "KES" | "USD";
 export type WaterReminderPreference = "in-app" | "off";
+export type ReminderSoundChoice = "system" | "silent" | "built-in" | "device-file";
+
+export type SelectedAudioFile = {
+  mimeType: string | null;
+  name: string;
+  size: number | null;
+  uri: string;
+};
+
+export type ReminderSoundSetting = {
+  choice: ReminderSoundChoice;
+  deviceFile: SelectedAudioFile | null;
+};
 
 export type AppSettings = {
   currency: CurrencyCode;
   defaultPreset: DefaultPresetSetting;
+  goHomeReminderSound: ReminderSoundSetting;
   goHomePhoneNotifications: boolean;
+  intervalReminderSound: ReminderSoundSetting;
   nextDrinkPhoneNotifications: boolean;
   onboardingCompleted: boolean;
   waterReminder: WaterReminderPreference;
@@ -30,7 +45,15 @@ type SettingsContextValue = {
 const defaultSettings: AppSettings = {
   currency: "KES",
   defaultPreset: null,
+  goHomeReminderSound: {
+    choice: "system",
+    deviceFile: null,
+  },
   goHomePhoneNotifications: true,
+  intervalReminderSound: {
+    choice: "system",
+    deviceFile: null,
+  },
   nextDrinkPhoneNotifications: true,
   onboardingCompleted: false,
   waterReminder: "in-app",
@@ -96,11 +119,49 @@ function parseSettings(value: string): AppSettings {
     defaultPreset: isDefaultPreset(parsedSettings.defaultPreset)
       ? parsedSettings.defaultPreset
       : null,
+    goHomeReminderSound: parseReminderSoundSetting(parsedSettings.goHomeReminderSound),
     goHomePhoneNotifications: parsedSettings.goHomePhoneNotifications ?? true,
+    intervalReminderSound: parseReminderSoundSetting(parsedSettings.intervalReminderSound),
     nextDrinkPhoneNotifications: parsedSettings.nextDrinkPhoneNotifications ?? true,
     onboardingCompleted: parsedSettings.onboardingCompleted ?? false,
     waterReminder: parsedSettings.waterReminder === "off" ? "off" : "in-app",
   };
+}
+
+function parseReminderSoundSetting(value: unknown): ReminderSoundSetting {
+  if (!value || typeof value !== "object") {
+    return { choice: "system", deviceFile: null };
+  }
+
+  const soundSetting = value as Partial<ReminderSoundSetting>;
+
+  return {
+    choice: isReminderSoundChoice(soundSetting.choice) ? soundSetting.choice : "system",
+    deviceFile: parseSelectedAudioFile(soundSetting.deviceFile),
+  };
+}
+
+function parseSelectedAudioFile(value: unknown): SelectedAudioFile | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const audioFile = value as Partial<SelectedAudioFile>;
+
+  if (typeof audioFile.name !== "string" || typeof audioFile.uri !== "string") {
+    return null;
+  }
+
+  return {
+    mimeType: typeof audioFile.mimeType === "string" ? audioFile.mimeType : null,
+    name: audioFile.name,
+    size: typeof audioFile.size === "number" ? audioFile.size : null,
+    uri: audioFile.uri,
+  };
+}
+
+function isReminderSoundChoice(value: unknown): value is ReminderSoundChoice {
+  return value === "system" || value === "silent" || value === "built-in" || value === "device-file";
 }
 
 function isDefaultPreset(value: unknown): value is DefaultPresetSetting {

@@ -30,7 +30,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications"
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/interval.mp3",
+            "./assets/sounds/go-home.mp3"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

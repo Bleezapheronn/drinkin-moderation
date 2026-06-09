@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
 import { useSettings } from "./settings";
+import type { ReminderSoundSetting } from "./settings";
 import {
   cancelAllDimSessionReminders,
   cancelSessionReminders,
@@ -206,6 +207,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const scheduleAndStoreReminders = async (scheduledSession: DrinkingSession) => {
     const result = await scheduleSessionReminders(scheduledSession, {
+      intervalReminderSound: settings.intervalReminderSound,
       nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
     });
 
@@ -215,6 +217,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const reconcileRestoredSession = async (restoredSession: DrinkingSession) => {
     const result = await reconcileSessionReminders(restoredSession, {
+      intervalReminderSound: settings.intervalReminderSound,
       nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
     });
 
@@ -226,7 +229,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
     if (!isRestoring && session?.nextAllowedDrinkAt) {
       void reconcileRestoredSession(session);
     }
-  }, [settings.nextDrinkPhoneNotifications]);
+  }, [settings.intervalReminderSound, settings.nextDrinkPhoneNotifications]);
 
   const value = useMemo<SessionContextValue>(
     () => ({
@@ -285,6 +288,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           session,
           nextSession,
           settings.goHomePhoneNotifications,
+          settings.goHomeReminderSound,
         );
       },
       undoLastDrink: () => {
@@ -435,6 +439,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
       reminderPermissionStatus,
       session,
       settings.goHomePhoneNotifications,
+      settings.goHomeReminderSound,
+      settings.intervalReminderSound,
       settings.nextDrinkPhoneNotifications,
       storageError,
     ],
@@ -502,6 +508,7 @@ async function sendTriggeredBehavioralReminders(
   previousSession: DrinkingSession,
   nextSession: DrinkingSession,
   isGoHomePhoneNotificationEnabled: boolean,
+  goHomeReminderSound: ReminderSoundSetting,
 ) {
   if (
     !previousSession.behavioralReminders.foodTriggered &&
@@ -510,8 +517,8 @@ async function sendTriggeredBehavioralReminders(
     await sendBehavioralReminder({
       body: "Eat something before the night gets away from you.",
       title: "Food check",
-          type: "food",
-        });
+      type: "food",
+    });
   }
 
   if (
@@ -525,6 +532,7 @@ async function sendTriggeredBehavioralReminders(
         ? "This is a guardrail night. Slow down, switch to water, and leave if you can."
         : "You reached the plan you set while sober. Go home with no regrets.",
       isPhoneNotificationEnabled: isGoHomePhoneNotificationEnabled,
+      soundSetting: goHomeReminderSound,
       title: isHighRiskNight ? "Create an exit" : "Time to wrap up",
       type: "go-home",
     });
