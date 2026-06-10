@@ -292,12 +292,21 @@ export default function ActiveSessionScreen() {
         </View>
 
         <View style={styles.quickStats}>
-          <QuickStat label="Drinks left" value={`${drinksLeft}`} />
-          {remainingBudget !== null ? (
-            <QuickStat label="Spending left" value={formatCurrency(remainingBudget, settings.currency)} />
-          ) : session.spendingItems.length > 0 ? (
-            <QuickStat label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
-          ) : null}
+          <QuickStat
+            actionAccessibilityLabel="Undo last drink"
+            actionIcon="↶"
+            isActionDisabled={session.drinkCount === 0}
+            label="Drinks left"
+            onActionPress={confirmUndoLastDrink}
+            value={`${drinksLeft}`}
+          />
+          <QuickStat
+            actionAccessibilityLabel="Log spending"
+            actionIcon="+"
+            label={remainingBudget !== null ? "Spending left" : "Spent"}
+            onActionPress={() => setIsSpendingModalVisible(true)}
+            value={formatCurrency(remainingBudget ?? totalSpent, settings.currency)}
+          />
         </View>
 
         {estimatedEnd ? (
@@ -366,19 +375,6 @@ export default function ActiveSessionScreen() {
         ) : null}
 
         <View style={styles.secondaryActions}>
-          <Pressable
-            onPress={() => setIsSpendingModalVisible(true)}
-            style={styles.secondaryButton}
-          >
-            <Text style={styles.secondaryButtonText}>Log spending</Text>
-          </Pressable>
-
-          {session.drinkCount > 0 ? (
-            <Pressable onPress={confirmUndoLastDrink} style={styles.secondaryButton}>
-              <Text style={styles.secondaryButtonText}>Undo last drink</Text>
-            </Pressable>
-          ) : null}
-
           <Pressable onPress={handleEndSession} style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>End session</Text>
           </Pressable>
@@ -544,15 +540,50 @@ export default function ActiveSessionScreen() {
 }
 
 type QuickStatProps = {
+  actionAccessibilityLabel: string;
+  actionIcon: string;
+  isActionDisabled?: boolean;
   label: string;
+  onActionPress: () => void;
   value: string;
 };
 
-function QuickStat({ label, value }: QuickStatProps) {
+function QuickStat({
+  actionAccessibilityLabel,
+  actionIcon,
+  isActionDisabled = false,
+  label,
+  onActionPress,
+  value,
+}: QuickStatProps) {
   return (
     <View style={styles.quickStat}>
-      <Text style={styles.quickStatValue}>{value}</Text>
-      <Text style={styles.quickStatLabel}>{label}</Text>
+      <View style={styles.quickStatHeader}>
+        <View style={styles.quickStatTextBlock}>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.quickStatValue}>
+            {value}
+          </Text>
+          <Text numberOfLines={1} style={styles.quickStatLabel}>
+            {label}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityLabel={actionAccessibilityLabel}
+          accessibilityRole="button"
+          disabled={isActionDisabled}
+          onPress={onActionPress}
+          style={[styles.quickStatAction, isActionDisabled ? styles.quickStatActionDisabled : null]}
+        >
+          <Text
+            style={[
+              styles.quickStatActionText,
+              isActionDisabled ? styles.quickStatActionTextDisabled : null,
+            ]}
+          >
+            {actionIcon}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -803,12 +834,22 @@ const styles = StyleSheet.create({
   },
   quickStat: {
     flex: 1,
-    gap: 4,
     padding: 14,
     borderRadius: 8,
     backgroundColor: "#ffffff",
     borderColor: "#e5ded3",
     borderWidth: 1,
+  },
+  quickStatHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-between",
+  },
+  quickStatTextBlock: {
+    flex: 1,
+    gap: 4,
+    minWidth: 0,
   },
   quickStatValue: {
     color: "#1f2a2e",
@@ -819,6 +860,28 @@ const styles = StyleSheet.create({
     color: "#52605f",
     fontSize: 13,
     fontWeight: "700",
+  },
+  quickStatAction: {
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "#f7f4ef",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
+  },
+  quickStatActionDisabled: {
+    opacity: 0.45,
+  },
+  quickStatActionText: {
+    color: "#2f6f62",
+    fontSize: 20,
+    fontWeight: "900",
+    lineHeight: 22,
+  },
+  quickStatActionTextDisabled: {
+    color: "#8b9692",
   },
   estimateCard: {
     paddingHorizontal: 14,
