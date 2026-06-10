@@ -15,6 +15,10 @@ import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from ".
 import { useSettings } from "../context/settings";
 import { getPacingSummary } from "../utils/pacing";
 import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
+import {
+  formatEstimatedEndTime,
+  getPlannedSessionDuration,
+} from "../utils/session-timing";
 
 type FormErrors = {
   firstIntervalMinutes?: string;
@@ -43,6 +47,17 @@ export default function NewSessionScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const selectedPreset = sessionPresets.find((preset) => preset.name === selectedPresetName);
+  const planningPacing = getPlanningPacing(
+    pacingType,
+    firstIntervalMinutes,
+    laterIntervalMinutes,
+    switchAfterDrink,
+  );
+  const parsedMaxDrinks = Number(maxDrinks);
+  const estimatedEnd =
+    planningPacing && Number.isFinite(parsedMaxDrinks) && parsedMaxDrinks > 0
+      ? Date.now() + getPlannedSessionDuration(planningPacing, parsedMaxDrinks) * 60 * 1000
+      : null;
 
   const handlePresetSelect = (presetName: SessionPresetName) => {
     const preset = sessionPresets.find((candidate) => candidate.name === presetName);
@@ -275,19 +290,23 @@ export default function NewSessionScreen() {
             <Text style={styles.label}>Current pacing rule</Text>
             <Text style={styles.body}>
               {getPacingSummary(
-                pacingType === "fixed"
-                  ? {
-                      intervalMinutes: Number(firstIntervalMinutes) || 0,
-                      type: "fixed",
-                    }
-                  : {
-                      firstIntervalMinutes: Number(firstIntervalMinutes) || 0,
-                      laterIntervalMinutes: Number(laterIntervalMinutes) || 0,
-                      switchAfterDrink,
-                      type: "dynamic",
-                    },
+                planningPacing ??
+                  (pacingType === "fixed"
+                    ? {
+                        intervalMinutes: 0,
+                        type: "fixed",
+                      }
+                    : {
+                        firstIntervalMinutes: 0,
+                        laterIntervalMinutes: 0,
+                        switchAfterDrink,
+                        type: "dynamic",
+                      }),
               )}
             </Text>
+            {estimatedEnd ? (
+              <Text style={styles.estimateText}>{formatEstimatedEndTime(estimatedEnd)}</Text>
+            ) : null}
           </View>
 
           <View style={styles.field}>
@@ -315,6 +334,38 @@ export default function NewSessionScreen() {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function getPlanningPacing(
+  pacingType: "fixed" | "dynamic",
+  firstIntervalMinutes: string,
+  laterIntervalMinutes: string,
+  switchAfterDrink: number,
+): PacingConfig | null {
+  const parsedFirstInterval = Number(firstIntervalMinutes);
+  const parsedLaterInterval = Number(laterIntervalMinutes);
+
+  if (!Number.isFinite(parsedFirstInterval) || parsedFirstInterval <= 0) {
+    return null;
+  }
+
+  if (pacingType === "fixed") {
+    return {
+      intervalMinutes: parsedFirstInterval,
+      type: "fixed",
+    };
+  }
+
+  if (!Number.isFinite(parsedLaterInterval) || parsedLaterInterval <= 0) {
+    return null;
+  }
+
+  return {
+    firstIntervalMinutes: parsedFirstInterval,
+    laterIntervalMinutes: parsedLaterInterval,
+    switchAfterDrink,
+    type: "dynamic",
+  };
 }
 
 type FieldProps = {
@@ -503,6 +554,12 @@ const styles = StyleSheet.create({
     color: "#52605f",
     fontSize: 15,
     lineHeight: 21,
+  },
+  estimateText: {
+    color: "#52605f",
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 20,
   },
   summaryCard: {
     gap: 8,

@@ -6,15 +6,17 @@ import {
   stayedWithinDrinkPlan,
   stayedWithinSpendingPlan,
 } from "./session-metrics";
+import { getDrinkingActivityRange } from "./session-timing";
 
 export function getSessionTitle(session: DrinkingSession) {
   return session.presetName ?? "Custom session";
 }
 
 export function getSessionDateRange(session: DrinkingSession) {
-  const date = formatDate(session.startedAt);
-  const startTime = formatTime(session.startedAt);
-  const endTime = session.endedAt ? formatTime(session.endedAt) : null;
+  const activityRange = getDrinkingActivityRange(session);
+  const date = formatDate(activityRange.startedAt);
+  const startTime = formatTime(activityRange.startedAt);
+  const endTime = activityRange.endedAt ? formatTime(activityRange.endedAt) : null;
 
   if (date === "Not recorded" || startTime === "Not recorded") {
     return "Not recorded";
@@ -85,6 +87,12 @@ export function formatDuration(startedAt: number | null | undefined, endedAt: nu
   }
 
   return `${hours} hr ${minutes} min`;
+}
+
+export function formatSessionDuration(session: DrinkingSession) {
+  const activityRange = getDrinkingActivityRange(session);
+
+  return formatDuration(activityRange.startedAt, activityRange.endedAt);
 }
 
 function getValidDate(timestamp: number | null | undefined) {

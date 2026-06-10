@@ -17,6 +17,7 @@ import { useSettings } from "../context/settings";
 import { formatCurrency } from "../utils/currency";
 import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
 import { getTotalSpent } from "../utils/session-metrics";
+import { formatEstimatedEndTime, getEstimatedSessionEnd } from "../utils/session-timing";
 
 const spendingCategories: SpendingCategory[] = [
   "My drink",
@@ -72,6 +73,10 @@ export default function ActiveSessionScreen() {
   const drinksLeft = session ? Math.max(0, session.maxDrinks - session.drinkCount) : 0;
   const drinkWarning = session ? getDrinkWarning(session) : null;
   const spendingWarning = session ? getSpendingWarning(session, totalSpent) : null;
+  const estimatedEnd = session ? getEstimatedSessionEnd(session, now) : null;
+  const isSessionWindowComplete = Boolean(
+    session && hasReachedMax && estimatedEnd !== null && estimatedEnd <= now,
+  );
   const drinkProgressFill = useMemo(
     () => getDrinkProgressFill(session, remainingSeconds),
     [remainingSeconds, session],
@@ -294,6 +299,18 @@ export default function ActiveSessionScreen() {
             <QuickStat label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
           ) : null}
         </View>
+
+        {estimatedEnd ? (
+          <View style={styles.estimateCard}>
+            <Text style={styles.estimateText}>
+              {isSessionWindowComplete
+                ? session.behavioralReminders.goHomeTriggered
+                  ? "Plan complete. Time to head home."
+                  : "Session window complete."
+                : formatEstimatedEndTime(estimatedEnd)}
+            </Text>
+          </View>
+        ) : null}
 
         {waterBanner ? (
           <View style={styles.waterBanner}>
@@ -802,6 +819,21 @@ const styles = StyleSheet.create({
     color: "#52605f",
     fontSize: 13,
     fontWeight: "700",
+  },
+  estimateCard: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderColor: "#e5ded3",
+    borderWidth: 1,
+  },
+  estimateText: {
+    color: "#52605f",
+    fontSize: 15,
+    fontWeight: "700",
+    lineHeight: 21,
+    textAlign: "center",
   },
   waterBanner: {
     alignItems: "center",

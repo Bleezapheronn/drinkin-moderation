@@ -10,6 +10,12 @@ import {
   stayedWithinDrinkPlan,
   stayedWithinSpendingPlan,
 } from "../utils/session-metrics";
+import {
+  formatDate,
+  formatSessionDuration,
+  formatTime,
+} from "../utils/session-format";
+import { getDrinkingActivityRange } from "../utils/session-timing";
 
 export default function SessionSummaryScreen() {
   const { isRestoring, latestCompletedSession, session, storageError } = useSession();
@@ -40,6 +46,7 @@ export default function SessionSummaryScreen() {
   }
 
   const totalSpent = getTotalSpent(summarySession);
+  const activityRange = getDrinkingActivityRange(summarySession);
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
@@ -59,6 +66,10 @@ export default function SessionSummaryScreen() {
         <SummaryRow label="Maximum drinks" value={`${summarySession.maxDrinks}`} />
         <SummaryRow label="Preset" value={summarySession.presetName ?? "Custom"} />
         <SummaryRow label="Primary drink type" value={summarySession.primaryDrinkType} />
+        <SummaryRow label="Date" value={formatDate(activityRange.startedAt)} />
+        <SummaryRow label="Start time" value={formatTime(activityRange.startedAt)} />
+        <SummaryRow label="End time" value={formatTime(activityRange.endedAt)} />
+        <SummaryRow label="Duration" value={formatSessionDuration(summarySession)} />
         <SummaryRow
           label="Stayed within drink plan"
           value={stayedWithinDrinkPlan(summarySession) ? "Yes" : "No"}

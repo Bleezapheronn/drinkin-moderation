@@ -13,10 +13,11 @@ import {
 } from "../../utils/session-metrics";
 import {
   formatDate,
-  formatDuration,
+  formatSessionDuration,
   formatTime,
   getSessionTitle,
 } from "../../utils/session-format";
+import { getDrinkingActivityRange } from "../../utils/session-timing";
 
 export default function SessionDetailScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -76,12 +77,13 @@ export default function SessionDetailScreen() {
 
   const totalSpent = getTotalSpent(session);
   const hasSpendingPlan = session.spendingCap !== null || session.spendingItems.length > 0;
+  const activityRange = getDrinkingActivityRange(session);
 
   return (
     <ScrollView contentContainerStyle={styles.screen}>
       <View style={styles.header}>
         <Text style={styles.title}>{getSessionTitle(session)}</Text>
-        <Text style={styles.body}>{formatDate(session.startedAt)}</Text>
+        <Text style={styles.body}>{formatDate(activityRange.startedAt)}</Text>
       </View>
 
       {storageError ? (
@@ -92,13 +94,10 @@ export default function SessionDetailScreen() {
 
       <View style={styles.card}>
         <DetailRow label="Primary drink type" value={session.primaryDrinkType ?? "Not recorded"} />
-        <DetailRow label="Date" value={formatDate(session.startedAt)} />
-        <DetailRow label="Start time" value={formatTime(session.startedAt)} />
-        <DetailRow label="End time" value={formatTime(session.endedAt)} />
-        <DetailRow
-          label="Duration"
-          value={formatDuration(session.startedAt, session.endedAt)}
-        />
+        <DetailRow label="Date" value={formatDate(activityRange.startedAt)} />
+        <DetailRow label="Start time" value={formatTime(activityRange.startedAt)} />
+        <DetailRow label="End time" value={formatTime(activityRange.endedAt)} />
+        <DetailRow label="Duration" value={formatSessionDuration(session)} />
       </View>
 
       <View style={styles.card}>
