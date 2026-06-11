@@ -16,8 +16,13 @@ import { DrinkingSession, SpendingCategory, useSession } from "../context/sessio
 import { useSettings } from "../context/settings";
 import { formatCurrency } from "../utils/currency";
 import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
+import { formatTime } from "../utils/session-format";
 import { getTotalSpent } from "../utils/session-metrics";
-import { formatEstimatedEndTime, getEstimatedSessionEnd } from "../utils/session-timing";
+import {
+  formatEstimatedEndTime,
+  getDrinkingActivityRange,
+  getEstimatedSessionEnd,
+} from "../utils/session-timing";
 
 const spendingCategories: SpendingCategory[] = [
   "My drink",
@@ -78,6 +83,10 @@ export default function ActiveSessionScreen() {
   const isSessionWindowComplete = Boolean(
     session && hasReachedMax && estimatedEnd !== null && estimatedEnd <= now,
   );
+  const timerCopy = getTimerCopy(remainingSeconds, hasReachedMax, isSessionWindowComplete);
+  const completionStripText = session
+    ? getCompletionStripText(session, estimatedEnd, isSessionWindowComplete)
+    : null;
   const drinkProgressFill = useMemo(
     () => getDrinkProgressFill(session, remainingSeconds),
     [remainingSeconds, session],
@@ -272,14 +281,10 @@ export default function ActiveSessionScreen() {
           <DrinkProgressVisual drinkType={session.primaryDrinkType} fillLevel={drinkProgressFill} />
 
           <View style={styles.timerBlock}>
-            <Text style={[styles.timerText, !isTimerActive ? styles.readyText : null]}>
-              {formatRemainingTime(remainingSeconds)}
+            <Text style={[styles.timerText, timerCopy.isComplete ? styles.completeText : null]}>
+              {timerCopy.title}
             </Text>
-            <Text style={styles.timerSubtext}>
-              {isTimerActive
-                ? "until next drink window"
-                : "Check in before deciding on another drink."}
-            </Text>
+            <Text style={styles.timerSubtext}>{timerCopy.subtitle}</Text>
           </View>
 
           <Pressable
@@ -293,12 +298,6 @@ export default function ActiveSessionScreen() {
               Log drink
             </Text>
           </Pressable>
-
-          {hasReachedMax ? (
-            <Text style={styles.stopMessage}>
-              You reached the plan. Future-you benefits from stopping here.
-            </Text>
-          ) : null}
         </View>
 
         <View style={styles.quickStats}>
@@ -319,13 +318,9 @@ export default function ActiveSessionScreen() {
           />
         </View>
 
-        {estimatedEnd ? (
+        {completionStripText ? (
           <View style={styles.estimateCard}>
-            <Text style={styles.estimateText}>
-              {isSessionWindowComplete
-                ? "Plan complete. Time to head home."
-                : formatEstimatedEndTime(estimatedEnd)}
-            </Text>
+            <Text style={styles.estimateText}>{completionStripText}</Text>
           </View>
         ) : null}
 
@@ -661,6 +656,54 @@ function formatRemainingTime(totalSeconds: number) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function getTimerCopy(
+  remainingSeconds: number,
+  hasReachedMax: boolean,
+  isSessionWindowComplete: boolean,
+) {
+  if (isSessionWindowComplete) {
+    return {
+      isComplete: true,
+      subtitle: "That's it for this session.",
+      title: "Plan complete.",
+    };
+  }
+
+  if (remainingSeconds > 0) {
+    return {
+      isComplete: false,
+      subtitle: hasReachedMax ? "until closing time" : "until next drink window",
+      title: formatRemainingTime(remainingSeconds),
+    };
+  }
+
+  return {
+    isComplete: false,
+    subtitle: "Check in before deciding on another drink.",
+    title: "Ready",
+  };
+}
+
+function getCompletionStripText(
+  session: DrinkingSession,
+  estimatedEnd: number | null,
+  isSessionWindowComplete: boolean,
+) {
+  if (!isSessionWindowComplete) {
+    return estimatedEnd ? formatEstimatedEndTime(estimatedEnd) : null;
+  }
+
+  const completedAt = getDrinkingActivityRange(session).endedAt;
+
+  if (!completedAt) {
+    return null;
+  }
+
+  const completedAtTime = formatTime(completedAt);
+
+  return completedAtTime === "Not recorded" ? null : `Completed at: ${completedAtTime}`;
+}
+
 function getDrinkProgressFill(session: DrinkingSession | null, remainingSeconds: number) {
   if (!session || remainingSeconds <= 0) {
     return 0;
@@ -728,7 +771,7 @@ function getPrimaryGuidance({
 
   if (hasReachedMax && isTimerActive) {
     return {
-      body: "You stuck to the plan! Now bring it home.",
+      body: "You stuck to the plan. Now bring it home.",
       level: "final",
       title: "Last call",
     };
@@ -759,11 +802,7 @@ function getDrinkWarning(session: DrinkingSession) {
   const ratio = session.drinkCount / session.maxDrinks;
 
   if (session.drinkCount >= session.maxDrinks) {
-    return {
-      level: "final" as const,
-      title: "Planned maximum reached",
-      body: "You reached the plan. Future-you benefits from stopping here.",
-    };
+    return null;
   }
 
   if (ratio >= 0.75) {
@@ -878,9 +917,9 @@ const styles = StyleSheet.create({
     lineHeight: 64,
     textAlign: "center",
   },
-  readyText: {
+  completeText: {
     color: "#2f6f62",
-    fontSize: 52,
+    fontSize: 40,
   },
   timerSubtext: {
     color: "#52605f",
@@ -1049,13 +1088,6 @@ const styles = StyleSheet.create({
   },
   disabledButtonText: {
     color: "#6d746f",
-  },
-  stopMessage: {
-    color: "#1f2a2e",
-    fontSize: 15,
-    fontWeight: "800",
-    lineHeight: 21,
-    textAlign: "center",
   },
   secondaryButton: {
     alignItems: "center",

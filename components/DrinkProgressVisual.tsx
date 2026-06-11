@@ -16,7 +16,6 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
     inputRange: [0, 1],
     outputRange: [0, shape.height],
   });
-  const isReady = clampedFill <= 0.01;
 
   useEffect(() => {
     Animated.timing(animatedFill, {
@@ -54,11 +53,6 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
             ) : null}
           </Animated.View>
           <View style={styles.gloss} />
-          {isReady ? (
-            <View style={styles.readyOverlay}>
-              <Text style={styles.readyLabel}>Ready</Text>
-            </View>
-          ) : null}
         </View>
         {shape.stem ? <View style={styles.stem} /> : null}
         {shape.base ? <View style={styles.base} /> : null}
@@ -287,18 +281,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     paddingHorizontal: 5,
     paddingVertical: 3,
-  },
-  readyOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(244, 239, 230, 0.64)",
-    zIndex: 5,
-  },
-  readyLabel: {
-    color: "#2f6f62",
-    fontSize: 18,
-    fontWeight: "900",
   },
   stem: {
     width: 5,
