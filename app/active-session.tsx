@@ -44,7 +44,8 @@ export default function ActiveSessionScreen() {
   const [now, setNow] = useState(Date.now());
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
   const [isSpendingListExpanded, setIsSpendingListExpanded] = useState(false);
-  const [dismissedWaterLogId, setDismissedWaterLogId] = useState<string | null>(null);
+  const [isFoodCheckDismissed, setIsFoodCheckDismissed] = useState(false);
+  const [isWaterCheckDismissed, setIsWaterCheckDismissed] = useState(false);
   const [isSpendingModalVisible, setIsSpendingModalVisible] = useState(false);
   const [spendingAmount, setSpendingAmount] = useState("");
   const [spendingNote, setSpendingNote] = useState("");
@@ -86,9 +87,20 @@ export default function ActiveSessionScreen() {
         session,
         now,
         remainingSeconds,
-        dismissedWaterLogId,
+        isWaterCheckDismissed,
         settings.waterReminder === "in-app",
       )
+    : null;
+  const primaryGuidance = session
+    ? getPrimaryGuidance({
+        isFoodCheckDismissed,
+        isSessionWindowComplete,
+        isTimerActive,
+        onDismissFood: () => setIsFoodCheckDismissed(true),
+        onDismissWater: waterBanner ? () => setIsWaterCheckDismissed(true) : undefined,
+        session,
+        waterBanner,
+      })
     : null;
 
   const resetSpendingForm = () => {
@@ -202,7 +214,6 @@ export default function ActiveSessionScreen() {
   const handleLogDrink = () => {
     if (canLogDrink) {
       logDrink();
-      setDismissedWaterLogId(null);
       setNow(Date.now());
     }
   };
@@ -215,7 +226,6 @@ export default function ActiveSessionScreen() {
         style: "destructive",
         onPress: () => {
           undoLastDrink();
-          setDismissedWaterLogId(null);
           setNow(Date.now());
         },
       },
@@ -313,23 +323,19 @@ export default function ActiveSessionScreen() {
           <View style={styles.estimateCard}>
             <Text style={styles.estimateText}>
               {isSessionWindowComplete
-                ? session.behavioralReminders.goHomeTriggered
-                  ? "Plan complete. Time to head home."
-                  : "Session window complete."
+                ? "Plan complete. Time to head home."
                 : formatEstimatedEndTime(estimatedEnd)}
             </Text>
           </View>
         ) : null}
 
-        {waterBanner ? (
-          <View style={styles.waterBanner}>
-            <Text style={styles.waterBannerText}>
-              Water check: have some water and slow the pace.
-            </Text>
-            <Pressable onPress={() => setDismissedWaterLogId(waterBanner.logId)}>
-              <Text style={styles.dismissText}>Dismiss</Text>
-            </Pressable>
-          </View>
+        {primaryGuidance ? (
+          <GuidanceNotice
+            body={primaryGuidance.body}
+            level={primaryGuidance.level}
+            onDismiss={primaryGuidance.onDismiss}
+            title={primaryGuidance.title}
+          />
         ) : null}
 
         {storageError ? (
@@ -338,31 +344,11 @@ export default function ActiveSessionScreen() {
           </View>
         ) : null}
 
-        {drinkWarning ? (
+        {drinkWarning && !primaryGuidance ? (
           <WarningNotice
             body={drinkWarning.body}
             level={drinkWarning.level}
             title={drinkWarning.title}
-          />
-        ) : null}
-
-        {session.behavioralReminders.foodTriggered ? (
-          <WarningNotice
-            body="Eat something before the night gets away from you."
-            level="standard"
-            title="Food check"
-          />
-        ) : null}
-
-        {session.behavioralReminders.goHomeTriggered ? (
-          <WarningNotice
-            body={
-              session.presetName === "High-Risk Night"
-                ? "This is a guardrail night. You do not need to win the night. You need to exit it cleanly."
-                : "You reached the plan. This is the point where future-you benefits from going home."
-            }
-            level="final"
-            title={session.presetName === "High-Risk Night" ? "Create an exit" : "Time to wrap up"}
           />
         ) : null}
 
@@ -636,6 +622,26 @@ function WarningNotice({ body, level, title }: WarningNoticeProps) {
   );
 }
 
+type GuidanceNoticeProps = WarningNoticeProps & {
+  onDismiss?: () => void;
+};
+
+function GuidanceNotice({ body, level, onDismiss, title }: GuidanceNoticeProps) {
+  return (
+    <View style={[styles.notice, level === "final" ? styles.noticeFinal : null]}>
+      <View style={styles.noticeHeader}>
+        <Text style={styles.noticeTitle}>{title}</Text>
+        {onDismiss ? (
+          <Pressable accessibilityLabel={`Dismiss ${title}`} onPress={onDismiss}>
+            <Text style={styles.dismissText}>Dismiss</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      <Text style={styles.noticeBody}>{body}</Text>
+    </View>
+  );
+}
+
 function getRemainingSeconds(session: DrinkingSession | null, now: number) {
   if (!session?.nextAllowedDrinkAt || session.endedAt) {
     return 0;
@@ -671,13 +677,14 @@ function getWaterBannerState(
   session: DrinkingSession,
   now: number,
   remainingSeconds: number,
-  dismissedLogId: string | null,
+  isWaterCheckDismissed: boolean,
   isWaterReminderEnabled: boolean,
 ) {
   const latestDrinkLog = session.drinkLogs.at(-1);
 
   if (
     !isWaterReminderEnabled ||
+    isWaterCheckDismissed ||
     !latestDrinkLog ||
     !session.nextAllowedDrinkAt ||
     remainingSeconds <= 0
@@ -685,13 +692,67 @@ function getWaterBannerState(
     return null;
   }
 
-  if (dismissedLogId === latestDrinkLog.id) {
-    return null;
-  }
-
   const halfwayAt = latestDrinkLog.loggedAt + (latestDrinkLog.intervalMinutes * 60 * 1000) / 2;
 
   return now >= halfwayAt ? { logId: latestDrinkLog.id } : null;
+}
+
+type PrimaryGuidanceInput = {
+  isFoodCheckDismissed: boolean;
+  isSessionWindowComplete: boolean;
+  isTimerActive: boolean;
+  onDismissFood: () => void;
+  onDismissWater?: () => void;
+  session: DrinkingSession;
+  waterBanner: { logId: string } | null;
+};
+
+function getPrimaryGuidance({
+  isFoodCheckDismissed,
+  isSessionWindowComplete,
+  isTimerActive,
+  onDismissFood,
+  onDismissWater,
+  session,
+  waterBanner,
+}: PrimaryGuidanceInput): GuidanceNoticeProps | null {
+  const hasReachedMax = session.drinkCount >= session.maxDrinks;
+
+  if (isSessionWindowComplete) {
+    return {
+      body: "Let's call it a night. There's always a next time.",
+      level: "final",
+      title: "Closing time",
+    };
+  }
+
+  if (hasReachedMax && isTimerActive) {
+    return {
+      body: "You stuck to the plan! Now bring it home.",
+      level: "final",
+      title: "Last call",
+    };
+  }
+
+  if (session.behavioralReminders.foodTriggered && !isFoodCheckDismissed) {
+    return {
+      body: "Remember to eat something to slow down alcohol absorption.",
+      level: "standard",
+      onDismiss: onDismissFood,
+      title: "Food check",
+    };
+  }
+
+  if (waterBanner && onDismissWater) {
+    return {
+      body: "Water check: have some water and watch your pace.",
+      level: "standard",
+      onDismiss: onDismissWater,
+      title: "Water check",
+    };
+  }
+
+  return null;
 }
 
 function getDrinkWarning(session: DrinkingSession) {
@@ -898,24 +959,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: "center",
   },
-  waterBanner: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "space-between",
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#e8f2ef",
-    borderColor: "#b9d6cf",
-    borderWidth: 1,
-  },
-  waterBannerText: {
-    flex: 1,
-    color: "#1f2a2e",
-    fontSize: 15,
-    fontWeight: "700",
-    lineHeight: 21,
-  },
   dismissText: {
     color: "#2f6f62",
     fontSize: 14,
@@ -969,9 +1012,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   noticeTitle: {
+    flex: 1,
     color: "#1f2a2e",
     fontSize: 16,
     fontWeight: "800",
+  },
+  noticeHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "space-between",
   },
   noticeBody: {
     color: "#52605f",
