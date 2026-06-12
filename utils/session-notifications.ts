@@ -141,6 +141,10 @@ export async function scheduleSessionReminders(
 }
 
 export async function sendBehavioralReminder(input: BehavioralReminderInput) {
+  if (input.type === "food") {
+    return "granted";
+  }
+
   if (input.type === "go-home" && input.isPhoneNotificationEnabled === false) {
     return "granted";
   }

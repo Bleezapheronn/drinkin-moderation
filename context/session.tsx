@@ -511,17 +511,6 @@ async function sendTriggeredBehavioralReminders(
   goHomeReminderSound: ReminderSoundSetting,
 ) {
   if (
-    !previousSession.behavioralReminders.foodTriggered &&
-    nextSession.behavioralReminders.foodTriggered
-  ) {
-    await sendBehavioralReminder({
-      body: "Eat something before the night gets away from you.",
-      title: "Food check",
-      type: "food",
-    });
-  }
-
-  if (
     !previousSession.behavioralReminders.goHomeTriggered &&
     nextSession.behavioralReminders.goHomeTriggered
   ) {

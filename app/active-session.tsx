@@ -779,7 +779,7 @@ function getPrimaryGuidance({
 
   if (session.behavioralReminders.foodTriggered && !isFoodCheckDismissed) {
     return {
-      body: "Remember to eat something to slow down alcohol absorption.",
+      body: "Eat something before the night gets away from you.",
       level: "standard",
       onDismiss: onDismissFood,
       title: "Food check",
@@ -860,7 +860,7 @@ function getSpendingWarning(session: DrinkingSession, totalSpent: number) {
 
 function getReminderStatusCopy(status: string) {
   if (status === "granted") {
-    return "Next-drink and exit reminders are on. Water checks appear in-app.";
+    return "Next-drink and exit reminders are on. Food and water checks appear in-app.";
   }
 
   if (status === "denied") {
