@@ -1,14 +1,14 @@
 import type { TextStyle, ViewStyle } from "react-native";
 
 export const colors = {
-  accent: "#c98212",
-  accentDark: "#9b6109",
-  accentLight: "#f0c46f",
-  accentSoft: "#fff3d8",
-  border: "#ead6aa",
-  borderStrong: "#d49419",
-  card: "#fffaf0",
-  cardMuted: "#fff5e3",
+  accent: "#c98608",
+  accentDark: "#8f5706",
+  accentLight: "#f3c96d",
+  accentSoft: "#fff1d1",
+  border: "#eed8aa",
+  borderStrong: "#d69a18",
+  card: "#fff8eb",
+  cardMuted: "#fff1dc",
   destructive: "#9f3f42",
   destructiveSoft: "#f8e4df",
   ink: "#2b2526",
@@ -20,9 +20,9 @@ export const colors = {
   warning: "#8a5304",
   warningSoft: "#fff1cf",
   white: "#ffffff",
-  wine: "#520019",
-  wineDeep: "#2c0710",
-  wineSoft: "#8c0f2c",
+  wine: "#5b001b",
+  wineDeep: "#2f0612",
+  wineSoft: "#8a102c",
 };
 
 export const spacing = {
@@ -45,18 +45,25 @@ export const radius = {
 
 export const shadows = {
   soft: {
-    elevation: 3,
+    elevation: 5,
     shadowColor: colors.wineDeep,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+  } satisfies ViewStyle,
+  card: {
+    elevation: 7,
+    shadowColor: colors.wineDeep,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.18,
+    shadowRadius: 26,
   } satisfies ViewStyle,
   gold: {
-    elevation: 4,
+    elevation: 5,
     shadowColor: colors.accentDark,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 9 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
   } satisfies ViewStyle,
 };
 
@@ -67,9 +74,9 @@ export const typography = {
     lineHeight: 36,
   } satisfies TextStyle,
   heroTitle: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: "900",
-    lineHeight: 42,
+    lineHeight: 44,
   } satisfies TextStyle,
   sectionTitle: {
     fontSize: 18,
@@ -86,9 +93,9 @@ export const typography = {
     lineHeight: 18,
   } satisfies TextStyle,
   numericTimer: {
-    fontSize: 70,
+    fontSize: 76,
     fontWeight: "900",
-    lineHeight: 78,
+    lineHeight: 82,
   } satisfies TextStyle,
   buttonLabel: {
     fontSize: 17,

@@ -43,8 +43,14 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
           ))}
         </View>
         {shape.garnish ? <Text style={styles.garnish}>{shape.garnish}</Text> : null}
-        {shape.handle ? <View style={styles.beerHandle} /> : null}
+        {shape.handle ? (
+          <View style={styles.beerHandleOuter}>
+            <View style={styles.beerHandleInner} />
+          </View>
+        ) : null}
+        <View style={styles.vesselShadow} />
         <View style={[styles.vessel, shape.vesselStyle]}>
+          <View style={styles.rim} />
           <View style={styles.measureLines}>
             <View style={styles.measureLine} />
             <View style={styles.measureLine} />
@@ -64,10 +70,13 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
                 <View style={styles.foamBubbleLarge} />
                 <View style={styles.foamBubble} />
                 <View style={styles.foamBubbleSmall} />
+                <View style={styles.foamBubbleWide} />
               </View>
             ) : null}
           </Animated.View>
           <View style={styles.gloss} />
+          <View style={styles.sideGloss} />
+          <View style={styles.baseGlass} />
         </View>
         {shape.stem ? <View style={styles.stem} /> : null}
         {shape.base ? <View style={styles.base} /> : null}
@@ -93,13 +102,13 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
     case "Beer":
       return {
         base: false,
-        fillColor: "#d99a32",
+        fillColor: "#d88b08",
         foam: true,
         garnish: null,
         handle: true,
         height: 134,
         stem: false,
-        surfaceColor: "#f4e5b9",
+        surfaceColor: "#f8d77b",
         vesselStyle: styles.beerVessel,
       };
     case "Wine":
@@ -179,37 +188,33 @@ const styles = StyleSheet.create({
   },
   progressHalo: {
     position: "absolute",
-    top: 12,
-    width: 188,
-    height: 188,
-    borderRadius: 94,
+    top: 10,
+    width: 192,
+    height: 192,
+    borderRadius: 96,
   },
   haloTick: {
     position: "absolute",
-    top: 88,
-    left: 92,
+    top: 90,
+    left: 94,
     width: 3,
-    height: 18,
+    height: 17,
     borderRadius: 3,
-    backgroundColor: "#d49419",
+    backgroundColor: "#d69a18",
   },
   vessel: {
     overflow: "hidden",
-    borderColor: "rgba(54, 28, 18, 0.72)",
+    borderColor: "rgba(65, 43, 31, 0.72)",
     borderWidth: 3,
-    backgroundColor: "rgba(255, 250, 240, 0.62)",
-    shadowColor: "#2c0710",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
+    backgroundColor: "rgba(255, 249, 237, 0.7)",
   },
   beerVessel: {
-    width: 104,
-    height: 134,
+    width: 108,
+    height: 136,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
   },
   soloCupVessel: {
     width: 96,
@@ -256,7 +261,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 8,
+    height: 10,
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
   },
@@ -275,51 +280,104 @@ const styles = StyleSheet.create({
   gloss: {
     position: "absolute",
     top: 18,
-    left: 20,
+    left: 18,
     width: 12,
-    height: 78,
+    height: 82,
     borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.44)",
+    backgroundColor: "rgba(255, 255, 255, 0.34)",
     zIndex: 3,
   },
-  beerHandle: {
+  sideGloss: {
     position: "absolute",
-    right: 36,
-    bottom: 48,
-    width: 52,
-    height: 82,
-    borderRadius: 26,
-    borderColor: "rgba(54, 28, 18, 0.5)",
+    top: 18,
+    right: 10,
+    width: 8,
+    height: 92,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    zIndex: 3,
+  },
+  baseGlass: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    bottom: 8,
+    height: 15,
+    borderRadius: 12,
+    backgroundColor: "rgba(47, 6, 18, 0.16)",
+    zIndex: 3,
+  },
+  rim: {
+    position: "absolute",
+    top: 5,
+    left: 8,
+    right: 8,
+    height: 5,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.48)",
+    zIndex: 4,
+  },
+  vesselShadow: {
+    position: "absolute",
+    bottom: -4,
+    width: 118,
+    height: 18,
+    borderRadius: 60,
+    backgroundColor: "rgba(47, 6, 18, 0.16)",
+  },
+  beerHandleOuter: {
+    position: "absolute",
+    right: 28,
+    bottom: 45,
+    width: 58,
+    height: 90,
+    borderRadius: 30,
+    borderColor: "rgba(65, 43, 31, 0.58)",
     borderWidth: 5,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(255, 249, 237, 0.46)",
+  },
+  beerHandleInner: {
+    position: "absolute",
+    top: 15,
+    left: 12,
+    right: 12,
+    bottom: 15,
+    borderRadius: 24,
+    backgroundColor: "#fff8eb",
   },
   foam: {
     position: "absolute",
     top: 5,
-    left: 10,
-    right: 10,
-    height: 20,
+    left: 7,
+    right: 7,
+    height: 24,
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 4,
+    gap: 3,
   },
   foamBubbleLarge: {
-    width: 22,
-    height: 14,
+    width: 25,
+    height: 16,
     borderRadius: 14,
-    backgroundColor: "#f7edcf",
+    backgroundColor: "#fff3d3",
   },
   foamBubble: {
-    width: 16,
-    height: 11,
+    width: 18,
+    height: 13,
     borderRadius: 12,
-    backgroundColor: "#f7edcf",
+    backgroundColor: "#fff7df",
   },
   foamBubbleSmall: {
-    width: 12,
-    height: 9,
+    width: 13,
+    height: 10,
     borderRadius: 10,
-    backgroundColor: "#f7edcf",
+    backgroundColor: "#fff3d3",
+  },
+  foamBubbleWide: {
+    width: 28,
+    height: 14,
+    borderRadius: 14,
+    backgroundColor: "#fff7df",
   },
   garnish: {
     position: "absolute",

@@ -20,7 +20,9 @@ type AppScreenProps = {
 export function AppScreen({ children, style }: AppScreenProps) {
   return (
     <View style={[styles.appScreen, style]}>
+      <View style={styles.topWash} />
       <View style={styles.backgroundGlow} />
+      <View style={styles.lowerGlow} />
       {children}
     </View>
   );
@@ -39,12 +41,13 @@ type StatCardProps = {
   action?: ReactNode;
   icon?: ReactNode;
   label: string;
+  style?: StyleProp<ViewStyle>;
   value: string;
 };
 
-export function StatCard({ action, icon, label, value }: StatCardProps) {
+export function StatCard({ action, icon, label, style, value }: StatCardProps) {
   return (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, style]}>
       {icon ? <View style={styles.statIcon}>{icon}</View> : null}
       <View style={styles.statText}>
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.statValue}>
@@ -110,11 +113,24 @@ type ReminderCardProps = {
 
 export function ReminderCard({ body, level = "standard", onDismiss, title }: ReminderCardProps) {
   const isFinal = level === "final";
+  const isStrong = level === "strong";
 
   return (
-    <View style={[styles.reminderCard, isFinal ? styles.reminderCardFinal : null]}>
-      <View style={styles.reminderIcon}>
-        <Text style={styles.reminderIconText}>{isFinal ? "!" : "*"}</Text>
+    <View
+      style={[
+        styles.reminderCard,
+        isStrong ? styles.reminderCardStrong : null,
+        isFinal ? styles.reminderCardFinal : null,
+      ]}
+    >
+      <View
+        style={[
+          styles.reminderIcon,
+          isStrong ? styles.reminderIconStrong : null,
+          isFinal ? styles.reminderIconFinal : null,
+        ]}
+      >
+        <Text style={styles.reminderIconText}>{isFinal ? "!" : isStrong ? "*" : "i"}</Text>
       </View>
       <View style={styles.reminderCopy}>
         <View style={styles.reminderHeader}>
@@ -151,31 +167,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.wine,
   },
+  topWash: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 170,
+    backgroundColor: "rgba(255, 244, 214, 0.04)",
+  },
   backgroundGlow: {
     position: "absolute",
-    top: -80,
-    right: -80,
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: "rgba(212, 148, 25, 0.12)",
+    top: -76,
+    right: -92,
+    width: 310,
+    height: 310,
+    borderRadius: 155,
+    backgroundColor: "rgba(214, 154, 24, 0.16)",
+  },
+  lowerGlow: {
+    position: "absolute",
+    top: 210,
+    left: -150,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: "rgba(47, 6, 18, 0.34)",
   },
   heroCard: {
-    gap: spacing.lg,
-    padding: spacing.xl,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxl,
+    paddingBottom: spacing.xl,
     borderRadius: radius.xl,
     backgroundColor: colors.card,
     borderColor: colors.borderStrong,
     borderWidth: 1,
-    ...shadows.soft,
+    ...shadows.card,
   },
   statCard: {
     alignItems: "center",
     flex: 1,
     flexDirection: "row",
-    gap: spacing.md,
-    minHeight: 92,
-    padding: spacing.md,
+    gap: 6,
+    minHeight: 88,
+    paddingHorizontal: 8,
+    paddingVertical: spacing.md,
     borderRadius: radius.lg,
     backgroundColor: colors.card,
     borderColor: colors.border,
@@ -184,11 +220,13 @@ const styles = StyleSheet.create({
   },
   statIcon: {
     alignItems: "center",
-    width: 52,
-    height: 52,
+    width: 36,
+    height: 36,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
+    borderColor: colors.accent,
+    borderWidth: 1,
   },
   statText: {
     flex: 1,
@@ -197,14 +235,15 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: colors.wineDeep,
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: "900",
-    lineHeight: 27,
+    lineHeight: 24,
   },
   statLabel: {
     color: colors.muted,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "700",
+    lineHeight: 16,
   },
   statAction: {
     alignItems: "center",
@@ -247,6 +286,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.soft,
   },
   infoIcon: {
     alignItems: "center",
@@ -273,6 +313,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderColor: colors.borderStrong,
     borderWidth: 1,
+    ...shadows.soft,
+  },
+  reminderCardStrong: {
+    backgroundColor: colors.warningSoft,
+    borderColor: colors.borderStrong,
   },
   reminderCardFinal: {
     backgroundColor: colors.destructiveSoft,
@@ -280,13 +325,20 @@ const styles = StyleSheet.create({
   },
   reminderIcon: {
     alignItems: "center",
-    width: 58,
-    height: 58,
+    width: 54,
+    height: 54,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
     borderColor: colors.accent,
     borderWidth: 2,
+  },
+  reminderIconStrong: {
+    backgroundColor: colors.wine,
+  },
+  reminderIconFinal: {
+    backgroundColor: colors.destructive,
+    borderColor: colors.wineDeep,
   },
   reminderIconText: {
     color: colors.accentLight,

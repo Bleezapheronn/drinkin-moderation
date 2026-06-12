@@ -566,6 +566,7 @@ function QuickStat({
     <StatCard
       icon={<Text style={styles.statIconText}>{iconLabel}</Text>}
       label={label}
+      style={label === "Drinks left" ? styles.drinksStatCard : styles.spendingStatCard}
       value={value}
       action={
         <Pressable
@@ -880,8 +881,9 @@ function getReminderStatusCopy(status: string) {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    gap: spacing.lg,
-    padding: spacing.xl,
+    gap: 18,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxxl,
   },
   centeredScreen: {
@@ -907,7 +909,7 @@ const styles = StyleSheet.create({
   },
   flourish: {
     color: colors.accent,
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "900",
     lineHeight: 34,
   },
@@ -925,7 +927,7 @@ const styles = StyleSheet.create({
   },
   drinkType: {
     color: colors.accentDark,
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: "900",
     textAlign: "center",
   },
@@ -958,7 +960,13 @@ const styles = StyleSheet.create({
   },
   quickStats: {
     flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
+  },
+  drinksStatCard: {
+    flex: 0.82,
+  },
+  spendingStatCard: {
+    flex: 1.18,
   },
   quickStat: {
     flex: 1,
@@ -991,20 +999,20 @@ const styles = StyleSheet.create({
   },
   quickStatAction: {
     alignItems: "center",
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     backgroundColor: colors.cardMuted,
     borderColor: colors.border,
     borderWidth: 1,
-    height: 44,
+    height: 38,
     justifyContent: "center",
-    width: 44,
+    width: 38,
   },
   quickStatActionDisabled: {
     opacity: 0.45,
   },
   quickStatActionText: {
     color: colors.accentDark,
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: "900",
     lineHeight: 22,
   },
@@ -1013,7 +1021,7 @@ const styles = StyleSheet.create({
   },
   statIconText: {
     color: colors.accentLight,
-    fontSize: 24,
+    fontSize: 21,
     fontWeight: "900",
   },
   infoIconText: {
