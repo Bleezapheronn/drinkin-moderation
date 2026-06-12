@@ -1,4 +1,4 @@
-import { Link, router } from "expo-router";
+import { Link, Stack, router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -12,8 +12,17 @@ import {
 } from "react-native";
 
 import { DrinkProgressVisual } from "../components/DrinkProgressVisual";
+import {
+  AppScreen,
+  HeroCard,
+  InfoStrip,
+  PrimaryButton,
+  ReminderCard,
+  StatCard,
+} from "../components/design-system";
 import { DrinkingSession, SpendingCategory, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
 import { formatTime } from "../utils/session-format";
@@ -248,34 +257,54 @@ export default function ActiveSessionScreen() {
 
   if (isRestoring) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>Restoring session</Text>
-        <Text style={styles.body}>Checking for a saved active session on this device.</Text>
-      </View>
+      <AppScreen>
+        <View style={styles.centeredScreen}>
+          <Text style={styles.title}>Restoring session</Text>
+          <Text style={styles.body}>Checking for a saved active session on this device.</Text>
+        </View>
+      </AppScreen>
     );
   }
 
   if (!session) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>No active session</Text>
-        <Text style={styles.body}>
-          Start a session first so the app can keep the plan in view.
-        </Text>
-        <Link href="/new-session" style={styles.linkButton}>
-          Create a plan
-        </Link>
-      </View>
+      <AppScreen>
+        <View style={styles.centeredScreen}>
+          <Text style={styles.title}>No active session</Text>
+          <Text style={styles.body}>
+            Start a session first so the app can keep the plan in view.
+          </Text>
+          <Link href="/new-session" style={styles.linkButton}>
+            Create a plan
+          </Link>
+        </View>
+      </AppScreen>
     );
   }
 
   return (
     <>
+      <Stack.Screen
+        options={{
+          contentStyle: { backgroundColor: colors.wine },
+          headerStyle: { backgroundColor: colors.wine },
+          headerTintColor: colors.card,
+          headerTitleStyle: { color: colors.card, fontSize: 28, fontWeight: "900" },
+          title: "Active Session",
+        }}
+      />
+      <AppScreen>
       <ScrollView contentContainerStyle={styles.screen}>
-        <View style={styles.dashboard}>
+        <HeroCard>
           <View style={styles.sessionMeta}>
+            <Text style={styles.flourish}>-</Text>
             <Text style={styles.presetName}>{session.presetName ?? "Custom session"}</Text>
+            <Text style={styles.flourish}>-</Text>
+          </View>
+          <View style={styles.drinkTypeRow}>
+            <Text style={styles.drinkTypeDot}>.</Text>
             <Text style={styles.drinkType}>{session.primaryDrinkType}</Text>
+            <Text style={styles.drinkTypeDot}>.</Text>
           </View>
 
           <DrinkProgressVisual drinkType={session.primaryDrinkType} fillLevel={drinkProgressFill} />
@@ -287,18 +316,13 @@ export default function ActiveSessionScreen() {
             <Text style={styles.timerSubtext}>{timerCopy.subtitle}</Text>
           </View>
 
-          <Pressable
+          <PrimaryButton
             disabled={!canLogDrink}
             onPress={handleLogDrink}
-            style={[styles.primaryButton, !canLogDrink ? styles.disabledButton : null]}
           >
-            <Text
-              style={[styles.primaryButtonText, !canLogDrink ? styles.disabledButtonText : null]}
-            >
-              Log drink
-            </Text>
-          </Pressable>
-        </View>
+            Log drink
+          </PrimaryButton>
+        </HeroCard>
 
         <View style={styles.quickStats}>
           <QuickStat
@@ -319,9 +343,7 @@ export default function ActiveSessionScreen() {
         </View>
 
         {completionStripText ? (
-          <View style={styles.estimateCard}>
-            <Text style={styles.estimateText}>{completionStripText}</Text>
-          </View>
+          <InfoStrip icon={<Text style={styles.infoIconText}>i</Text>}>{completionStripText}</InfoStrip>
         ) : null}
 
         {primaryGuidance ? (
@@ -435,6 +457,7 @@ export default function ActiveSessionScreen() {
           </CollapsibleSection>
         ) : null}
       </ScrollView>
+      </AppScreen>
 
       <Modal
         animationType="slide"
@@ -447,7 +470,7 @@ export default function ActiveSessionScreen() {
             <Text style={styles.modalTitle}>
               {editingSpendingId ? "Edit spending" : "Log spending"}
             </Text>
-            <Text style={styles.body}>
+            <Text style={styles.modalBody}>
               {editingSpendingId
                 ? "Adjust the entry so the session stays accurate."
                 : "Add what you spent so the plan stays visible."}
@@ -537,17 +560,14 @@ function QuickStat({
   onActionPress,
   value,
 }: QuickStatProps) {
+  const iconLabel = label === "Drinks left" ? "D" : "$";
+
   return (
-    <View style={styles.quickStat}>
-      <View style={styles.quickStatHeader}>
-        <View style={styles.quickStatTextBlock}>
-          <Text numberOfLines={1} adjustsFontSizeToFit style={styles.quickStatValue}>
-            {value}
-          </Text>
-          <Text numberOfLines={1} style={styles.quickStatLabel}>
-            {label}
-          </Text>
-        </View>
+    <StatCard
+      icon={<Text style={styles.statIconText}>{iconLabel}</Text>}
+      label={label}
+      value={value}
+      action={
         <Pressable
           accessibilityLabel={actionAccessibilityLabel}
           accessibilityRole="button"
@@ -564,8 +584,8 @@ function QuickStat({
             {actionIcon}
           </Text>
         </Pressable>
-      </View>
-    </View>
+      }
+    />
   );
 }
 
@@ -609,12 +629,7 @@ type WarningNoticeProps = {
 };
 
 function WarningNotice({ body, level, title }: WarningNoticeProps) {
-  return (
-    <View style={[styles.notice, level === "final" ? styles.noticeFinal : null]}>
-      <Text style={styles.noticeTitle}>{title}</Text>
-      <Text style={styles.noticeBody}>{body}</Text>
-    </View>
-  );
+  return <ReminderCard body={body} level={level} title={title} />;
 }
 
 type GuidanceNoticeProps = WarningNoticeProps & {
@@ -622,19 +637,7 @@ type GuidanceNoticeProps = WarningNoticeProps & {
 };
 
 function GuidanceNotice({ body, level, onDismiss, title }: GuidanceNoticeProps) {
-  return (
-    <View style={[styles.notice, level === "final" ? styles.noticeFinal : null]}>
-      <View style={styles.noticeHeader}>
-        <Text style={styles.noticeTitle}>{title}</Text>
-        {onDismiss ? (
-          <Pressable accessibilityLabel={`Dismiss ${title}`} onPress={onDismiss}>
-            <Text style={styles.dismissText}>Dismiss</Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <Text style={styles.noticeBody}>{body}</Text>
-    </View>
-  );
+  return <ReminderCard body={body} level={level} onDismiss={onDismiss} title={title} />;
 }
 
 function getRemainingSeconds(session: DrinkingSession | null, now: number) {
@@ -877,60 +880,85 @@ function getReminderStatusCopy(status: string) {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    gap: 18,
-    padding: 20,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.lg,
+    padding: spacing.xl,
+    paddingBottom: spacing.xxxl,
+  },
+  centeredScreen: {
+    flex: 1,
+    justifyContent: "center",
+    gap: spacing.lg,
+    padding: spacing.xxl,
   },
   dashboard: {
     alignItems: "center",
-    gap: 18,
-    padding: 20,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
   },
   sessionMeta: {
     alignItems: "center",
-    gap: 4,
+    flexDirection: "row",
+    gap: spacing.md,
+    justifyContent: "center",
+  },
+  flourish: {
+    color: colors.accent,
+    fontSize: 28,
+    fontWeight: "900",
+    lineHeight: 34,
   },
   presetName: {
-    color: "#1f2a2e",
-    fontSize: 24,
-    fontWeight: "800",
+    color: colors.wineDeep,
     textAlign: "center",
+    ...typography.heroTitle,
+  },
+  drinkTypeRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    justifyContent: "center",
+    marginTop: -spacing.md,
   },
   drinkType: {
-    color: "#52605f",
-    fontSize: 15,
-    fontWeight: "700",
+    color: colors.accentDark,
+    fontSize: 22,
+    fontWeight: "900",
     textAlign: "center",
+  },
+  drinkTypeDot: {
+    color: colors.accent,
+    fontSize: 22,
+    fontWeight: "900",
+    lineHeight: 26,
   },
   timerBlock: {
     alignItems: "center",
-    gap: 4,
+    gap: spacing.xs,
   },
   timerText: {
-    color: "#1f2a2e",
-    fontSize: 56,
-    fontWeight: "900",
-    lineHeight: 64,
+    color: colors.wine,
     textAlign: "center",
+    ...typography.numericTimer,
   },
   completeText: {
-    color: "#2f6f62",
-    fontSize: 40,
+    color: colors.success,
+    fontSize: 38,
+    lineHeight: 46,
   },
   timerSubtext: {
-    color: "#52605f",
-    fontSize: 15,
+    color: colors.ink,
+    fontSize: 18,
     fontWeight: "700",
-    lineHeight: 21,
+    lineHeight: 25,
     textAlign: "center",
   },
   quickStats: {
     flexDirection: "row",
-    gap: 10,
+    gap: spacing.md,
   },
   quickStat: {
     flex: 1,
@@ -963,25 +991,35 @@ const styles = StyleSheet.create({
   },
   quickStatAction: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#f7f4ef",
-    borderColor: "#e5ded3",
+    borderRadius: radius.md,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.border,
     borderWidth: 1,
-    height: 34,
+    height: 44,
     justifyContent: "center",
-    width: 34,
+    width: 44,
   },
   quickStatActionDisabled: {
     opacity: 0.45,
   },
   quickStatActionText: {
-    color: "#2f6f62",
+    color: colors.accentDark,
     fontSize: 20,
     fontWeight: "900",
     lineHeight: 22,
   },
   quickStatActionTextDisabled: {
-    color: "#8b9692",
+    color: colors.mutedLight,
+  },
+  statIconText: {
+    color: colors.accentLight,
+    fontSize: 24,
+    fontWeight: "900",
+  },
+  infoIconText: {
+    color: colors.accentDark,
+    fontSize: 18,
+    fontWeight: "900",
   },
   estimateCard: {
     paddingHorizontal: 14,
@@ -1004,28 +1042,26 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 28,
-    fontWeight: "800",
+    color: colors.card,
+    ...typography.screenTitle,
   },
   body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
+    color: colors.cardMuted,
+    ...typography.body,
   },
   metric: {
-    gap: 4,
-    paddingVertical: 8,
-    borderBottomColor: "#e5ded3",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
   metricLabel: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 14,
     fontWeight: "700",
   },
   metricValue: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 16,
     fontWeight: "800",
     lineHeight: 22,
@@ -1043,11 +1079,11 @@ const styles = StyleSheet.create({
     borderColor: "#df9b8f",
   },
   storageNotice: {
-    gap: 6,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
+    gap: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
   },
   noticeTitle: {
@@ -1068,56 +1104,57 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   secondaryActions: {
-    gap: 10,
+    gap: spacing.md,
   },
   primaryButton: {
     alignItems: "center",
     alignSelf: "stretch",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    paddingHorizontal: 18,
-    paddingVertical: 15,
+    borderRadius: radius.md,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    ...shadows.gold,
   },
   primaryButtonText: {
-    color: "#ffffff",
+    color: colors.white,
     fontSize: 17,
     fontWeight: "800",
   },
   disabledButton: {
-    backgroundColor: "#d6d1c8",
+    backgroundColor: "#d8c8a6",
   },
   disabledButtonText: {
-    color: "#6d746f",
+    color: colors.muted,
   },
   secondaryButton: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#cfc6ba",
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   secondaryButtonText: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 16,
     fontWeight: "700",
   },
   linkButton: {
     overflow: "hidden",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    color: "#ffffff",
+    borderRadius: radius.md,
+    backgroundColor: colors.accent,
+    color: colors.white,
     fontSize: 16,
     fontWeight: "700",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
     textAlign: "center",
   },
   collapsible: {
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
     overflow: "hidden",
   },
@@ -1125,51 +1162,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
-    padding: 16,
+    gap: spacing.md,
+    padding: spacing.lg,
   },
   collapsibleTitle: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 17,
     fontWeight: "800",
   },
   collapsibleIndicator: {
-    color: "#2f6f62",
+    color: colors.accentDark,
     fontSize: 14,
     fontWeight: "800",
   },
   collapsibleBody: {
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   detailGrid: {
     gap: 4,
   },
   entriesList: {
-    gap: 12,
+    gap: spacing.md,
   },
   entryRow: {
-    gap: 10,
-    paddingTop: 12,
-    borderTopColor: "#e5ded3",
+    gap: spacing.md,
+    paddingTop: spacing.md,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
   },
   entryTextBlock: {
     gap: 4,
   },
   entryAmount: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 18,
     fontWeight: "800",
   },
   entryMeta: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 14,
     fontWeight: "700",
   },
   entryNote: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1178,40 +1215,43 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   smallButton: {
-    borderRadius: 8,
-    borderColor: "#cfc6ba",
+    borderRadius: radius.sm,
+    borderColor: colors.border,
     borderWidth: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.cardMuted,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   smallButtonText: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 14,
     fontWeight: "700",
   },
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(31, 42, 46, 0.35)",
+    backgroundColor: colors.overlay,
   },
   modalPanel: {
-    gap: 18,
-    padding: 24,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.lg,
+    padding: spacing.xxl,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    backgroundColor: colors.card,
   },
   modalTitle: {
-    color: "#1f2a2e",
-    fontSize: 24,
-    fontWeight: "800",
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
+  },
+  modalBody: {
+    color: colors.muted,
+    ...typography.body,
   },
   field: {
-    gap: 8,
+    gap: spacing.sm,
   },
   label: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -1219,18 +1259,18 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    borderRadius: radius.md,
+    backgroundColor: colors.white,
+    borderColor: colors.border,
     borderWidth: 1,
-    color: "#1f2a2e",
+    color: colors.ink,
     fontSize: 18,
   },
   inputError: {
-    borderColor: "#b65353",
+    borderColor: colors.destructive,
   },
   error: {
-    color: "#9b3f3f",
+    color: colors.destructive,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1240,26 +1280,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryButton: {
-    borderRadius: 8,
-    borderColor: "#cfc6ba",
+    borderRadius: radius.sm,
+    borderColor: colors.border,
     borderWidth: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.white,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   categorySelected: {
-    borderColor: "#2f6f62",
-    backgroundColor: "#e3eee9",
+    borderColor: colors.accent,
+    backgroundColor: colors.accentSoft,
   },
   categoryButtonText: {
-    color: "#1f2a2e",
+    color: colors.ink,
     fontSize: 14,
     fontWeight: "700",
   },
   categorySelectedText: {
-    color: "#2f6f62",
+    color: colors.accentDark,
   },
   modalActions: {
-    gap: 12,
+    gap: spacing.md,
   },
 });

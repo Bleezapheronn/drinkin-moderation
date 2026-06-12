@@ -28,7 +28,22 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   return (
     <View style={styles.wrapper}>
       <View style={styles.visualStage}>
+        <View style={styles.progressHalo}>
+          {Array.from({ length: 26 }).map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.haloTick,
+                {
+                  opacity: index / 25 <= clampedFill ? 0.9 : 0.18,
+                  transform: [{ rotate: `${index * 10 - 130}deg` }, { translateY: -88 }],
+                },
+              ]}
+            />
+          ))}
+        </View>
         {shape.garnish ? <Text style={styles.garnish}>{shape.garnish}</Text> : null}
+        {shape.handle ? <View style={styles.beerHandle} /> : null}
         <View style={[styles.vessel, shape.vesselStyle]}>
           <View style={styles.measureLines}>
             <View style={styles.measureLine} />
@@ -66,6 +81,7 @@ type DrinkShape = {
   fillColor: string;
   foam: boolean;
   garnish: string | null;
+  handle: boolean;
   height: number;
   stem: boolean;
   surfaceColor: string;
@@ -80,6 +96,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#d99a32",
         foam: true,
         garnish: null,
+        handle: true,
         height: 134,
         stem: false,
         surfaceColor: "#f4e5b9",
@@ -91,6 +108,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#8f3d54",
         foam: false,
         garnish: null,
+        handle: false,
         height: 116,
         stem: true,
         surfaceColor: "#b65a72",
@@ -102,6 +120,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#c77c42",
         foam: false,
         garnish: null,
+        handle: false,
         height: 88,
         stem: false,
         surfaceColor: "#dfac72",
@@ -113,6 +132,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#d96f6f",
         foam: false,
         garnish: "slice",
+        handle: false,
         height: 104,
         stem: true,
         surfaceColor: "#ee9a8f",
@@ -124,6 +144,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#6fb5c8",
         foam: false,
         garnish: null,
+        handle: false,
         height: 132,
         stem: false,
         surfaceColor: "#a9d7e3",
@@ -136,6 +157,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         fillColor: "#6f9f91",
         foam: false,
         garnish: null,
+        handle: false,
         height: 132,
         stem: false,
         surfaceColor: "#a6cdbf",
@@ -147,22 +169,42 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
-    minHeight: 190,
+    minHeight: 222,
   },
   visualStage: {
     alignItems: "center",
-    height: 180,
+    height: 214,
     justifyContent: "flex-end",
-    width: 160,
+    width: 220,
+  },
+  progressHalo: {
+    position: "absolute",
+    top: 12,
+    width: 188,
+    height: 188,
+    borderRadius: 94,
+  },
+  haloTick: {
+    position: "absolute",
+    top: 88,
+    left: 92,
+    width: 3,
+    height: 18,
+    borderRadius: 3,
+    backgroundColor: "#d49419",
   },
   vessel: {
     overflow: "hidden",
-    borderColor: "#1f2a2e",
+    borderColor: "rgba(54, 28, 18, 0.72)",
     borderWidth: 3,
-    backgroundColor: "#f4efe6",
+    backgroundColor: "rgba(255, 250, 240, 0.62)",
+    shadowColor: "#2c0710",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
   },
   beerVessel: {
-    width: 98,
+    width: 104,
     height: 134,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
@@ -228,17 +270,28 @@ const styles = StyleSheet.create({
     width: 22,
     height: 2,
     borderRadius: 4,
-    backgroundColor: "rgba(31, 42, 46, 0.16)",
+    backgroundColor: "rgba(255, 250, 240, 0.34)",
   },
   gloss: {
     position: "absolute",
     top: 18,
-    right: 16,
-    width: 10,
-    height: 58,
+    left: 20,
+    width: 12,
+    height: 78,
     borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.52)",
+    backgroundColor: "rgba(255, 255, 255, 0.44)",
     zIndex: 3,
+  },
+  beerHandle: {
+    position: "absolute",
+    right: 36,
+    bottom: 48,
+    width: 52,
+    height: 82,
+    borderRadius: 26,
+    borderColor: "rgba(54, 28, 18, 0.5)",
+    borderWidth: 5,
+    backgroundColor: "transparent",
   },
   foam: {
     position: "absolute",
@@ -285,12 +338,12 @@ const styles = StyleSheet.create({
   stem: {
     width: 5,
     height: 28,
-    backgroundColor: "#1f2a2e",
+    backgroundColor: "#2c0710",
   },
   base: {
     width: 62,
     height: 6,
     borderRadius: 8,
-    backgroundColor: "#1f2a2e",
+    backgroundColor: "#2c0710",
   },
 });
