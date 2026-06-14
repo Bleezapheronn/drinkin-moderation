@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Animated, Image, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 import type { PrimaryDrinkType } from "../context/session";
+
+const beerMugHero = require("../assets/illustrations/beer-mug-hero.png");
 
 type DrinkProgressVisualProps = {
   drinkType: PrimaryDrinkType;
@@ -28,20 +30,51 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   return (
     <View style={styles.wrapper}>
       <View style={styles.visualStage}>
-        <View style={styles.progressHalo}>
-          {Array.from({ length: 26 }).map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.haloTick,
-                {
-                  opacity: index / 25 <= clampedFill ? 0.9 : 0.18,
-                  transform: [{ rotate: `${index * 10 - 130}deg` }, { translateY: -88 }],
-                },
-              ]}
-            />
-          ))}
-        </View>
+        <ProgressHalo clampedFill={clampedFill} />
+        {drinkType === "Beer" ? (
+          <>
+            <View style={styles.assetShadow} />
+            <Image accessibilityIgnoresInvertColors source={beerMugHero} style={styles.beerAsset} />
+          </>
+        ) : (
+          <NativeDrinkVisual fillHeight={fillHeight} shape={shape} />
+        )}
+      </View>
+    </View>
+  );
+}
+
+type ProgressHaloProps = {
+  clampedFill: number;
+};
+
+function ProgressHalo({ clampedFill }: ProgressHaloProps) {
+  return (
+    <View style={styles.progressHalo}>
+      {Array.from({ length: 34 }).map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.haloTick,
+            {
+              opacity: index / 33 <= clampedFill ? 0.92 : 0.18,
+              transform: [{ rotate: `${index * 7.5 - 126}deg` }, { translateY: -91 }],
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+type NativeDrinkVisualProps = {
+  fillHeight: Animated.AnimatedInterpolation<string | number>;
+  shape: DrinkShape;
+};
+
+function NativeDrinkVisual({ fillHeight, shape }: NativeDrinkVisualProps) {
+  return (
+    <>
         {shape.garnish ? <Text style={styles.garnish}>{shape.garnish}</Text> : null}
         {shape.handle ? (
           <View style={styles.beerHandleOuter}>
@@ -80,8 +113,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
         </View>
         {shape.stem ? <View style={styles.stem} /> : null}
         {shape.base ? <View style={styles.base} /> : null}
-      </View>
-    </View>
+    </>
   );
 }
 
@@ -178,29 +210,42 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
-    minHeight: 222,
+    minHeight: 246,
   },
   visualStage: {
     alignItems: "center",
-    height: 214,
+    height: 238,
     justifyContent: "flex-end",
-    width: 220,
+    width: 252,
   },
   progressHalo: {
     position: "absolute",
-    top: 10,
-    width: 192,
-    height: 192,
-    borderRadius: 96,
+    top: 6,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
   },
   haloTick: {
     position: "absolute",
-    top: 90,
-    left: 94,
+    top: 99,
+    left: 103,
     width: 3,
-    height: 17,
+    height: 16,
     borderRadius: 3,
     backgroundColor: "#d69a18",
+  },
+  assetShadow: {
+    position: "absolute",
+    bottom: 4,
+    width: 142,
+    height: 22,
+    borderRadius: 80,
+    backgroundColor: "rgba(47, 6, 18, 0.14)",
+  },
+  beerAsset: {
+    width: 190,
+    height: 190,
+    resizeMode: "contain",
   },
   vessel: {
     overflow: "hidden",

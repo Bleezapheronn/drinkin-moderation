@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LinearGradient } from "expo-linear-gradient";
 import {
   Pressable,
   PressableProps,
@@ -19,12 +20,24 @@ type AppScreenProps = {
 
 export function AppScreen({ children, style }: AppScreenProps) {
   return (
-    <View style={[styles.appScreen, style]}>
+    <LinearGradient
+      colors={[colors.wineDark, colors.wine, colors.wineDeep]}
+      end={{ x: 1, y: 1 }}
+      start={{ x: 0, y: 0 }}
+      style={[styles.appScreen, style]}
+    >
+      <LinearGradient
+        colors={["rgba(255, 229, 167, 0.16)", "rgba(255, 229, 167, 0)"]}
+        end={{ x: 0.5, y: 1 }}
+        start={{ x: 0.5, y: 0 }}
+        style={styles.topHighlight}
+      />
       <View style={styles.topWash} />
       <View style={styles.backgroundGlow} />
       <View style={styles.lowerGlow} />
+      <View style={styles.sideWineShape} />
       {children}
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -34,7 +47,19 @@ type HeroCardProps = {
 };
 
 export function HeroCard({ children, style }: HeroCardProps) {
-  return <View style={[styles.heroCard, style]}>{children}</View>;
+  return (
+    <View style={[styles.heroCardShell, style]}>
+      <LinearGradient
+        colors={["#fffdf6", colors.card, "#fff1dc"]}
+        end={{ x: 1, y: 1 }}
+        start={{ x: 0, y: 0 }}
+        style={styles.heroCard}
+      >
+        <View style={styles.heroInnerGlow} />
+        {children}
+      </LinearGradient>
+    </View>
+  );
 }
 
 type StatCardProps = {
@@ -82,6 +107,15 @@ export function PrimaryButton({
       disabled={disabled}
       style={[styles.primaryButton, disabled ? styles.primaryButtonDisabled : null, style]}
     >
+      {disabled ? null : (
+        <LinearGradient
+          colors={[colors.accentLight, colors.accentMid, colors.accentDeep]}
+          end={{ x: 1, y: 1 }}
+          start={{ x: 0, y: 0 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      <View style={styles.primaryButtonShine} />
       <Text style={[styles.primaryButtonText, disabled ? styles.primaryButtonTextDisabled : null, textStyle]}>
         {children}
       </Text>
@@ -173,16 +207,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 170,
-    backgroundColor: "rgba(255, 244, 214, 0.04)",
+    backgroundColor: "rgba(255, 244, 214, 0.035)",
+  },
+  topHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 250,
   },
   backgroundGlow: {
     position: "absolute",
-    top: -76,
-    right: -92,
-    width: 310,
-    height: 310,
-    borderRadius: 155,
-    backgroundColor: "rgba(214, 154, 24, 0.16)",
+    top: 26,
+    right: -118,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: "rgba(214, 154, 24, 0.18)",
   },
   lowerGlow: {
     position: "absolute",
@@ -193,16 +234,38 @@ const styles = StyleSheet.create({
     borderRadius: 150,
     backgroundColor: "rgba(47, 6, 18, 0.34)",
   },
-  heroCard: {
-    gap: spacing.md,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xl,
+  sideWineShape: {
+    position: "absolute",
+    top: 70,
+    right: -92,
+    width: 190,
+    height: 330,
+    borderRadius: 110,
+    backgroundColor: "rgba(127, 18, 45, 0.28)",
+    transform: [{ rotate: "18deg" }],
+  },
+  heroCardShell: {
     borderRadius: radius.xl,
-    backgroundColor: colors.card,
     borderColor: colors.borderStrong,
-    borderWidth: 1,
+    borderWidth: 1.5,
+    overflow: "hidden",
     ...shadows.card,
+  },
+  heroCard: {
+    gap: spacing.lg,
+    overflow: "hidden",
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxxl,
+    paddingBottom: spacing.xl,
+  },
+  heroInnerGlow: {
+    position: "absolute",
+    top: 80,
+    alignSelf: "center",
+    width: 230,
+    height: 230,
+    borderRadius: 115,
+    backgroundColor: "rgba(243, 201, 109, 0.13)",
   },
   statCard: {
     alignItems: "center",
@@ -254,12 +317,13 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     justifyContent: "center",
     minHeight: 58,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     backgroundColor: colors.accent,
     borderColor: colors.accentLight,
     borderWidth: 1,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
+    overflow: "hidden",
     ...shadows.gold,
   },
   primaryButtonDisabled: {
@@ -270,7 +334,18 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: colors.white,
     textAlign: "center",
+    zIndex: 2,
     ...typography.buttonLabel,
+  },
+  primaryButtonShine: {
+    position: "absolute",
+    top: 1,
+    left: 12,
+    right: 12,
+    height: 18,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
+    zIndex: 1,
   },
   primaryButtonTextDisabled: {
     color: "#6b6259",

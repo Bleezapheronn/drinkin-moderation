@@ -3,7 +3,9 @@ import type { TextStyle, ViewStyle } from "react-native";
 export const colors = {
   accent: "#c98608",
   accentDark: "#8f5706",
+  accentDeep: "#a46306",
   accentLight: "#f3c96d",
+  accentMid: "#df9f1d",
   accentSoft: "#fff1d1",
   border: "#eed8aa",
   borderStrong: "#d69a18",
@@ -21,7 +23,9 @@ export const colors = {
   warningSoft: "#fff1cf",
   white: "#ffffff",
   wine: "#5b001b",
+  wineDark: "#3b0010",
   wineDeep: "#2f0612",
+  wineGlow: "#7f122d",
   wineSoft: "#8a102c",
 };
 
