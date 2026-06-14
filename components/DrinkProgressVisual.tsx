@@ -14,9 +14,15 @@ import type { PrimaryDrinkType } from "../context/session";
 type BeerLayerAssets = {
   foam?: ImageSourcePropType;
   glass?: ImageSourcePropType;
+  liquid?: ImageSourcePropType;
+  mug?: ImageSourcePropType;
 };
 
-const beerLayerAssets: BeerLayerAssets = {};
+const beerLayerAssets: BeerLayerAssets = {
+  foam: require("../assets/illustrations/beer-foam-top.png"),
+  liquid: require("../assets/illustrations/beer-liquid-fill.png"),
+  mug: require("../assets/illustrations/beer-mug-empty.png"),
+};
 
 type DrinkProgressVisualProps = {
   drinkType: PrimaryDrinkType;
@@ -45,7 +51,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
       <View style={styles.visualStage}>
         <ProgressHalo clampedFill={clampedFill} />
         {drinkType === "Beer" ? (
-          <LayeredBeerVisual fillHeight={fillHeight} />
+          <LayeredBeerVisual clampedFill={clampedFill} fillHeight={fillHeight} />
         ) : (
           <NativeDrinkVisual fillHeight={fillHeight} shape={shape} />
         )}
@@ -82,7 +88,56 @@ type NativeDrinkVisualProps = {
   shape: DrinkShape;
 };
 
-function LayeredBeerVisual({ fillHeight }: Pick<NativeDrinkVisualProps, "fillHeight">) {
+type LayeredBeerVisualProps = Pick<NativeDrinkVisualProps, "fillHeight"> & {
+  clampedFill: number;
+};
+
+function LayeredBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
+  if (beerLayerAssets.mug && beerLayerAssets.liquid && beerLayerAssets.foam) {
+    return <AssetBeerVisual clampedFill={clampedFill} fillHeight={fillHeight} />;
+  }
+
+  return <NativeLayeredBeerVisual fillHeight={fillHeight} />;
+}
+
+function AssetBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
+  return (
+    <>
+      <View style={styles.vesselShadow} />
+      <View style={styles.assetBeerStage}>
+        <Animated.View style={[styles.assetBeerFillStack, { height: fillHeight }]}>
+          <View style={styles.assetBeerLiquidMask}>
+            <Image
+              accessibilityIgnoresInvertColors
+              source={beerLayerAssets.liquid}
+              style={styles.assetBeerLiquid}
+            />
+          </View>
+          <Image
+            accessibilityIgnoresInvertColors
+            source={beerLayerAssets.foam}
+            style={[styles.assetBeerFoam, clampedFill <= 0.04 ? styles.hiddenLayer : null]}
+          />
+        </Animated.View>
+        <Image
+          accessibilityIgnoresInvertColors
+          source={beerLayerAssets.mug}
+          style={styles.assetBeerMug}
+        />
+        <View style={styles.assetBeerHighlight} />
+        {beerLayerAssets.glass ? (
+          <Image
+            accessibilityIgnoresInvertColors
+            source={beerLayerAssets.glass}
+            style={styles.layeredBeerGlassAsset}
+          />
+        ) : null}
+      </View>
+    </>
+  );
+}
+
+function NativeLayeredBeerVisual({ fillHeight }: Pick<NativeDrinkVisualProps, "fillHeight">) {
   return (
     <>
       <View style={styles.vesselShadow} />
@@ -308,6 +363,62 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
+  },
+  assetBeerStage: {
+    alignItems: "center",
+    height: 190,
+    justifyContent: "flex-end",
+    width: 164,
+  },
+  assetBeerMug: {
+    position: "absolute",
+    bottom: 0,
+    width: 148,
+    height: 190,
+    resizeMode: "contain",
+    zIndex: 6,
+  },
+  assetBeerFillStack: {
+    position: "absolute",
+    left: 35,
+    bottom: 23,
+    width: 84,
+    overflow: "visible",
+    zIndex: 2,
+  },
+  assetBeerLiquidMask: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "hidden",
+  },
+  assetBeerLiquid: {
+    position: "absolute",
+    left: -2,
+    bottom: 0,
+    width: 88,
+    height: 132,
+    resizeMode: "stretch",
+  },
+  assetBeerFoam: {
+    position: "absolute",
+    top: -20,
+    left: -26,
+    width: 136,
+    height: 52,
+    resizeMode: "contain",
+    zIndex: 4,
+  },
+  assetBeerHighlight: {
+    position: "absolute",
+    left: 43,
+    top: 32,
+    width: 12,
+    height: 106,
+    borderRadius: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
+    zIndex: 7,
+  },
+  hiddenLayer: {
+    opacity: 0,
   },
   soloCupVessel: {
     width: 96,
