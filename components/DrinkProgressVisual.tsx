@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import {
   Animated,
   Image,
-  ImageSourcePropType,
   StyleSheet,
   Text,
   View,
@@ -11,22 +10,16 @@ import {
 
 import type { PrimaryDrinkType } from "../context/session";
 
-type BeerLayerAssets = {
-  foam?: ImageSourcePropType;
-  glass?: ImageSourcePropType;
-  liquid?: ImageSourcePropType;
-  mug?: ImageSourcePropType;
-};
+const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 
-const beerLayerAssets: BeerLayerAssets = {
-  foam: require("../assets/illustrations/beer-foam-top.png"),
-  liquid: require("../assets/illustrations/beer-liquid-fill.png"),
-  mug: require("../assets/illustrations/beer-mug-empty.png"),
-};
-
-const beerCanvas = {
-  fillAnimationHeight: 134,
-  size: 190,
+const beerMugGeometry = {
+  foamHeight: 18,
+  innerHeight: 122,
+  innerWidth: 88,
+  innerX: 28,
+  innerY: 37,
+  mugSize: 190,
+  stageSize: 190,
 };
 
 type DrinkProgressVisualProps = {
@@ -56,7 +49,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
       <View style={styles.visualStage}>
         <ProgressHalo clampedFill={clampedFill} />
         {drinkType === "Beer" ? (
-          <LayeredBeerVisual clampedFill={clampedFill} fillHeight={fillHeight} />
+          <LayeredBeerVisual fillHeight={fillHeight} />
         ) : (
           <NativeDrinkVisual fillHeight={fillHeight} shape={shape} />
         )}
@@ -93,113 +86,31 @@ type NativeDrinkVisualProps = {
   shape: DrinkShape;
 };
 
-type LayeredBeerVisualProps = Pick<NativeDrinkVisualProps, "fillHeight"> & {
-  clampedFill: number;
-};
+type LayeredBeerVisualProps = Pick<NativeDrinkVisualProps, "fillHeight">;
 
-function LayeredBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
-  if (beerLayerAssets.mug && beerLayerAssets.liquid && beerLayerAssets.foam) {
-    return <AssetBeerVisual clampedFill={clampedFill} fillHeight={fillHeight} />;
-  }
-
-  return <NativeLayeredBeerVisual fillHeight={fillHeight} />;
-}
-
-function AssetBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
-  const liquidClipHeight = fillHeight.interpolate({
-    inputRange: [0, beerCanvas.fillAnimationHeight],
-    outputRange: [0, beerCanvas.size],
-  });
-  const foamTranslateY = fillHeight.interpolate({
-    inputRange: [0, beerCanvas.fillAnimationHeight],
-    outputRange: [beerCanvas.size, 0],
-  });
-
+function LayeredBeerVisual({ fillHeight }: LayeredBeerVisualProps) {
   return (
     <>
       <View style={styles.vesselShadow} />
-      <View style={styles.assetBeerStage}>
-        <Animated.View style={[styles.assetBeerLiquidClip, { height: liquidClipHeight }]}>
-          <Image
-            accessibilityIgnoresInvertColors
-            source={beerLayerAssets.liquid}
-            style={styles.assetBeerLiquidLayer}
-          />
-        </Animated.View>
-        <Animated.View
-          style={[
-            styles.assetBeerFoamLayer,
-            {
-              opacity: clampedFill <= 0.04 ? 0 : 1,
-              transform: [{ translateY: foamTranslateY }],
-            },
-          ]}
-        >
-          <Image accessibilityIgnoresInvertColors source={beerLayerAssets.foam} style={styles.assetBeerRegisteredLayer} />
-        </Animated.View>
+      <View style={styles.beerOverlayStage}>
+        <View style={styles.beerNativeFillBounds}>
+          <Animated.View style={[styles.beerNativeFillStack, { height: fillHeight }]}>
+            <View style={styles.beerNativeFoam}>
+              <View style={styles.beerNativeFoamSoftTop} />
+              <View style={[styles.beerNativeFoamDot, styles.beerNativeFoamDotOne]} />
+              <View style={[styles.beerNativeFoamDot, styles.beerNativeFoamDotTwo]} />
+            </View>
+            <View style={styles.beerNativeSurface} />
+            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleOne]} />
+            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleTwo]} />
+            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleThree]} />
+          </Animated.View>
+        </View>
         <Image
           accessibilityIgnoresInvertColors
-          source={beerLayerAssets.mug}
-          style={[styles.assetBeerRegisteredLayer, styles.assetBeerMugLayer]}
+          source={beerMugOverlay}
+          style={styles.beerMugOverlay}
         />
-        {beerLayerAssets.glass ? (
-          <Image
-            accessibilityIgnoresInvertColors
-            source={beerLayerAssets.glass}
-            style={styles.layeredBeerGlassAsset}
-          />
-        ) : null}
-      </View>
-    </>
-  );
-}
-
-function NativeLayeredBeerVisual({ fillHeight }: Pick<NativeDrinkVisualProps, "fillHeight">) {
-  return (
-    <>
-      <View style={styles.vesselShadow} />
-      <View style={styles.beerHandleBack}>
-        <View style={styles.beerHandleCutout} />
-        <View style={styles.beerHandleHighlight} />
-      </View>
-      <View style={styles.layeredBeerMug}>
-        <View style={styles.layeredBeerBackTint} />
-        <Animated.View style={[styles.layeredBeerLiquidClip, { height: fillHeight }]}>
-          {beerLayerAssets.foam ? (
-            <Image
-              accessibilityIgnoresInvertColors
-              source={beerLayerAssets.foam}
-              style={styles.layeredBeerFoamAsset}
-            />
-          ) : (
-            <View style={styles.layeredBeerFoam}>
-            <View style={styles.foamCrownLarge} />
-            <View style={styles.foamCrownMedium} />
-            <View style={styles.foamCrownSmall} />
-            <View style={styles.foamCrownWide} />
-            </View>
-          )}
-          <View style={styles.layeredBeerLiquid}>
-            <View style={[styles.bubble, styles.bubbleOne]} />
-            <View style={[styles.bubble, styles.bubbleTwo]} />
-            <View style={[styles.bubble, styles.bubbleThree]} />
-            <View style={[styles.bubble, styles.bubbleFour]} />
-            <View style={[styles.bubble, styles.bubbleFive]} />
-          </View>
-        </Animated.View>
-        <View style={styles.layeredBeerRim} />
-        <View style={styles.layeredBeerLeftWall} />
-        <View style={styles.layeredBeerRightWall} />
-        <View style={styles.layeredBeerBase} />
-        <View style={styles.layeredBeerMainHighlight} />
-        <View style={styles.layeredBeerSideHighlight} />
-        {beerLayerAssets.glass ? (
-          <Image
-            accessibilityIgnoresInvertColors
-            source={beerLayerAssets.glass}
-            style={styles.layeredBeerGlassAsset}
-          />
-        ) : null}
       </View>
     </>
   );
@@ -271,7 +182,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         foam: true,
         garnish: null,
         handle: true,
-        height: 134,
+        height: beerMugGeometry.innerHeight,
         stem: false,
         surfaceColor: "#f8d77b",
         vesselStyle: styles.beerVessel,
@@ -381,45 +292,113 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
   },
-  assetBeerStage: {
-    height: beerCanvas.size,
-    overflow: "hidden",
-    width: beerCanvas.size,
+  beerOverlayStage: {
+    height: beerMugGeometry.stageSize,
+    overflow: "visible",
+    width: beerMugGeometry.stageSize,
   },
-  assetBeerRegisteredLayer: {
-    position: "absolute",
+  beerMugOverlay: {
+    height: beerMugGeometry.mugSize,
     left: 0,
-    top: 0,
-    width: beerCanvas.size,
-    height: beerCanvas.size,
+    position: "absolute",
     resizeMode: "contain",
-  },
-  assetBeerLiquidClip: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: "hidden",
-    zIndex: 2,
-  },
-  assetBeerLiquidLayer: {
-    position: "absolute",
-    left: 0,
-    bottom: 0,
-    width: beerCanvas.size,
-    height: beerCanvas.size,
-    resizeMode: "contain",
-  },
-  assetBeerFoamLayer: {
-    position: "absolute",
-    left: 0,
     top: 0,
-    width: beerCanvas.size,
-    height: beerCanvas.size,
+    width: beerMugGeometry.mugSize,
     zIndex: 4,
   },
-  assetBeerMugLayer: {
-    zIndex: 6,
+  beerNativeFillBounds: {
+    bottom:
+      beerMugGeometry.stageSize -
+      beerMugGeometry.innerY -
+      beerMugGeometry.innerHeight,
+    height: beerMugGeometry.innerHeight,
+    left: beerMugGeometry.innerX,
+    overflow: "hidden",
+    position: "absolute",
+    width: beerMugGeometry.innerWidth,
+    zIndex: 2,
+  },
+  beerNativeFillStack: {
+    backgroundColor: "#d88b08",
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    bottom: 0,
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+  },
+  beerNativeFoam: {
+    backgroundColor: "#fff2cf",
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    height: beerMugGeometry.foamHeight,
+    left: 4,
+    position: "absolute",
+    right: 4,
+    top: 0,
+    zIndex: 3,
+  },
+  beerNativeFoamSoftTop: {
+    backgroundColor: "#fff8e5",
+    borderRadius: 10,
+    height: 8,
+    left: 7,
+    position: "absolute",
+    right: 9,
+    top: -2,
+  },
+  beerNativeFoamDot: {
+    backgroundColor: "rgba(255, 255, 255, 0.52)",
+    borderRadius: 5,
+    height: 6,
+    position: "absolute",
+    top: 6,
+    width: 6,
+  },
+  beerNativeFoamDotOne: {
+    left: 18,
+  },
+  beerNativeFoamDotTwo: {
+    right: 16,
+    top: 8,
+    width: 5,
+    height: 5,
+  },
+  beerNativeSurface: {
+    backgroundColor: "rgba(248, 215, 123, 0.5)",
+    height: 5,
+    left: 6,
+    position: "absolute",
+    right: 6,
+    top: beerMugGeometry.foamHeight - 1,
+  },
+  beerNativeBubble: {
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderColor: "rgba(255, 226, 146, 0.64)",
+    borderRadius: 4,
+    borderWidth: 1,
+    height: 7,
+    position: "absolute",
+    width: 7,
+  },
+  beerNativeBubbleOne: {
+    left: 18,
+    top: 35,
+  },
+  beerNativeBubbleTwo: {
+    right: 20,
+    top: 56,
+    width: 5,
+    height: 5,
+  },
+  beerNativeBubbleThree: {
+    left: 42,
+    bottom: 32,
+    width: 5,
+    height: 5,
   },
   soloCupVessel: {
     width: 96,
@@ -469,210 +448,6 @@ const styles = StyleSheet.create({
     height: 10,
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
-  },
-  layeredBeerMug: {
-    width: 116,
-    height: 144,
-    overflow: "hidden",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 19,
-    borderBottomRightRadius: 19,
-    borderColor: "rgba(64, 43, 31, 0.72)",
-    borderWidth: 3,
-    backgroundColor: "rgba(255, 250, 240, 0.42)",
-  },
-  layeredBeerBackTint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 248, 235, 0.34)",
-  },
-  layeredBeerLiquidClip: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    overflow: "hidden",
-  },
-  layeredBeerLiquid: {
-    ...StyleSheet.absoluteFillObject,
-    top: 12,
-    backgroundColor: "#d88b08",
-  },
-  layeredBeerFoam: {
-    position: "absolute",
-    top: -1,
-    left: 6,
-    right: 6,
-    height: 26,
-    zIndex: 3,
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  layeredBeerFoamAsset: {
-    position: "absolute",
-    top: -3,
-    left: 4,
-    right: 4,
-    height: 30,
-    resizeMode: "contain",
-    zIndex: 3,
-  },
-  layeredBeerGlassAsset: {
-    ...StyleSheet.absoluteFillObject,
-    resizeMode: "contain",
-    zIndex: 8,
-  },
-  foamCrownLarge: {
-    width: 32,
-    height: 20,
-    marginTop: 4,
-    borderRadius: 18,
-    backgroundColor: "#fff4d2",
-  },
-  foamCrownMedium: {
-    width: 26,
-    height: 17,
-    marginLeft: -5,
-    borderRadius: 16,
-    backgroundColor: "#fff8e5",
-  },
-  foamCrownSmall: {
-    width: 20,
-    height: 14,
-    marginLeft: -4,
-    marginTop: 3,
-    borderRadius: 14,
-    backgroundColor: "#fff2cf",
-  },
-  foamCrownWide: {
-    flex: 1,
-    height: 18,
-    marginLeft: -6,
-    marginTop: 5,
-    borderRadius: 18,
-    backgroundColor: "#fff7df",
-  },
-  layeredBeerRim: {
-    position: "absolute",
-    top: 7,
-    left: 8,
-    right: 8,
-    height: 6,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.54)",
-    zIndex: 5,
-  },
-  layeredBeerLeftWall: {
-    position: "absolute",
-    top: 12,
-    bottom: 10,
-    left: 7,
-    width: 9,
-    borderRadius: 8,
-    backgroundColor: "rgba(55, 35, 22, 0.18)",
-    zIndex: 4,
-  },
-  layeredBeerRightWall: {
-    position: "absolute",
-    top: 12,
-    bottom: 10,
-    right: 7,
-    width: 9,
-    borderRadius: 8,
-    backgroundColor: "rgba(55, 35, 22, 0.15)",
-    zIndex: 4,
-  },
-  layeredBeerBase: {
-    position: "absolute",
-    left: 11,
-    right: 11,
-    bottom: 8,
-    height: 16,
-    borderRadius: 14,
-    backgroundColor: "rgba(47, 6, 18, 0.16)",
-    zIndex: 5,
-  },
-  layeredBeerMainHighlight: {
-    position: "absolute",
-    top: 20,
-    bottom: 21,
-    left: 24,
-    width: 13,
-    borderRadius: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.34)",
-    zIndex: 6,
-  },
-  layeredBeerSideHighlight: {
-    position: "absolute",
-    top: 25,
-    bottom: 28,
-    right: 20,
-    width: 7,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    zIndex: 6,
-  },
-  beerHandleBack: {
-    position: "absolute",
-    right: 30,
-    bottom: 47,
-    width: 63,
-    height: 94,
-    borderRadius: 34,
-    borderColor: "rgba(64, 43, 31, 0.58)",
-    borderWidth: 5,
-    backgroundColor: "rgba(255, 250, 240, 0.36)",
-  },
-  beerHandleCutout: {
-    position: "absolute",
-    top: 15,
-    left: 13,
-    right: 13,
-    bottom: 15,
-    borderRadius: 26,
-    backgroundColor: "#fff8eb",
-  },
-  beerHandleHighlight: {
-    position: "absolute",
-    top: 12,
-    right: 8,
-    width: 9,
-    height: 58,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.32)",
-  },
-  bubble: {
-    position: "absolute",
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "rgba(255, 226, 146, 0.64)",
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-  },
-  bubbleOne: {
-    left: 25,
-    top: 24,
-  },
-  bubbleTwo: {
-    right: 30,
-    top: 36,
-    width: 5,
-    height: 5,
-  },
-  bubbleThree: {
-    left: 55,
-    top: 58,
-  },
-  bubbleFour: {
-    right: 42,
-    bottom: 30,
-  },
-  bubbleFive: {
-    left: 38,
-    bottom: 46,
-    width: 5,
-    height: 5,
   },
   measureLines: {
     ...StyleSheet.absoluteFillObject,
