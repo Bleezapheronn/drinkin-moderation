@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -11,8 +11,10 @@ import {
   View,
 } from "react-native";
 
+import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 import { getPacingSummary } from "../utils/pacing";
 import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
 import {
@@ -169,170 +171,200 @@ export default function NewSessionScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.keyboardView}
-    >
-      <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Set the plan while clear-headed.</Text>
-        <Text style={styles.body}>Pick a starting point, then adjust anything that needs it.</Text>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Presets</Text>
-          {sessionPresets.map((preset) => {
-            const isSelected = selectedPresetName === preset.name;
-
-            return (
-              <Pressable
-                key={preset.name}
-                onPress={() => handlePresetSelect(preset.name)}
-                style={[styles.presetCard, isSelected ? styles.presetCardSelected : null]}
-              >
-                <Text style={styles.presetName}>{preset.name}</Text>
-                <Text style={styles.body}>{preset.useCase}</Text>
-                <Text style={styles.presetDetail}>{getPacingSummary(preset.pacing)}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {guidance ? (
-          <View style={styles.guidanceCard}>
-            <Text style={styles.guidanceTitle}>{selectedPreset?.name ?? "Guidance"}</Text>
-            <Text style={styles.guidanceText}>{guidance}</Text>
-            {presetNote ? <Text style={styles.guidanceText}>{presetNote}</Text> : null}
-          </View>
-        ) : null}
-
-        <View style={styles.form}>
-          <Text style={styles.sectionTitle}>Plan details</Text>
-          <Field
-            error={errors.maxDrinks}
-            keyboardType="number-pad"
-            label="Maximum drinks"
-            onChangeText={setMaxDrinks}
-            value={maxDrinks}
-          />
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Pacing type</Text>
-            <View style={styles.optionRow}>
-              <OptionButton
-                isSelected={pacingType === "fixed"}
-                label="Fixed interval"
-                onPress={() => setPacingType("fixed")}
-              />
-              <OptionButton
-                isSelected={pacingType === "dynamic"}
-                label="Dynamic interval"
-                onPress={() => setPacingType("dynamic")}
-              />
-            </View>
-          </View>
-
-          <Field
-            error={errors.firstIntervalMinutes}
-            keyboardType="number-pad"
-            label={pacingType === "fixed" ? "Drink interval in minutes" : "First 3 drinks"}
-            onChangeText={setFirstIntervalMinutes}
-            value={firstIntervalMinutes}
-          />
-
-          {pacingType === "dynamic" ? (
-            <>
-              <View style={styles.summaryCard}>
-                <Text style={styles.label}>Switch point</Text>
-                <Text style={styles.body}>After drink {switchAfterDrink}</Text>
-              </View>
-              <Field
-                error={errors.laterIntervalMinutes}
-                keyboardType="number-pad"
-                label="After that"
-                onChangeText={setLaterIntervalMinutes}
-                value={laterIntervalMinutes}
-              />
-            </>
-          ) : null}
-
-          <Field
-            error={errors.spendingCap}
-            keyboardType="decimal-pad"
-            label="Spending cap"
-            onChangeText={setSpendingCap}
-            placeholder="Optional"
-            value={spendingCap}
-          />
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Primary drink type</Text>
-            <View style={styles.optionGrid}>
-              {primaryDrinkTypes.map((drinkType) => (
-                <OptionButton
-                  key={drinkType}
-                  isSelected={primaryDrinkType === drinkType}
-                  label={drinkType}
-                  onPress={() => setPrimaryDrinkType(drinkType)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {primaryDrinkType === "Spirits / liquor" || primaryDrinkType === "Cocktails" ? (
-            <View style={styles.warningCard}>
-              <Text style={styles.warningText}>
-                Stronger drinks make it easier to cross the line without noticing. Consider a
-                lower max or longer interval.
+    <>
+      <Stack.Screen
+        options={{
+          contentStyle: { backgroundColor: colors.wine },
+          headerStyle: { backgroundColor: colors.wine },
+          headerTintColor: colors.card,
+          headerTitleStyle: { color: colors.card, fontWeight: "900" },
+          title: "New Session",
+        }}
+      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={styles.keyboardView}
+      >
+        <AppScreen>
+          <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+            <View style={styles.header}>
+              <Text style={styles.kicker}>Plan builder</Text>
+              <Text style={styles.title}>Set the plan while clear-headed.</Text>
+              <Text style={styles.subtitle}>
+                Pick a starting point, then adjust anything that needs it.
               </Text>
             </View>
-          ) : null}
 
-          <View style={styles.summaryCard}>
-            <Text style={styles.label}>Current pacing rule</Text>
-            <Text style={styles.body}>
-              {getPacingSummary(
-                planningPacing ??
-                  (pacingType === "fixed"
-                    ? {
-                        intervalMinutes: 0,
-                        type: "fixed",
-                      }
-                    : {
-                        firstIntervalMinutes: 0,
-                        laterIntervalMinutes: 0,
-                        switchAfterDrink,
-                        type: "dynamic",
-                      }),
-              )}
-            </Text>
-            {estimatedEnd ? (
-              <Text style={styles.estimateText}>{formatEstimatedEndTime(estimatedEnd)}</Text>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Presets</Text>
+              {sessionPresets.map((preset) => {
+                const isSelected = selectedPresetName === preset.name;
+
+                return (
+                  <Pressable
+                    key={preset.name}
+                    onPress={() => handlePresetSelect(preset.name)}
+                    style={[styles.presetCard, isSelected ? styles.presetCardSelected : null]}
+                  >
+                    <View style={styles.presetHeader}>
+                      <Text
+                        style={[styles.presetName, isSelected ? styles.presetNameSelected : null]}
+                      >
+                        {preset.name}
+                      </Text>
+                      {isSelected ? <Text style={styles.selectedBadge}>Selected</Text> : null}
+                    </View>
+                    <Text style={[styles.cardBody, isSelected ? styles.selectedBody : null]}>
+                      {preset.useCase}
+                    </Text>
+                    <Text
+                      style={[styles.presetDetail, isSelected ? styles.presetDetailSelected : null]}
+                    >
+                      {getPacingSummary(preset.pacing)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {guidance ? (
+              <HeroCard style={styles.guidanceCard}>
+                <Text style={styles.guidanceTitle}>{selectedPreset?.name ?? "Guidance"}</Text>
+                <Text style={styles.guidanceText}>{guidance}</Text>
+                {presetNote ? <Text style={styles.guidanceText}>{presetNote}</Text> : null}
+              </HeroCard>
             ) : null}
-          </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Behavioral reminders</Text>
-            <View style={styles.optionRow}>
-              <OptionButton
-                isSelected={foodReminderEnabled}
-                label={`Food reminder: ${foodReminderEnabled ? "on" : "off"}`}
-                onPress={() => setFoodReminderEnabled((enabled) => !enabled)}
+            <View style={styles.sectionCard}>
+              <Text style={styles.formTitle}>Plan details</Text>
+              <Field
+                error={errors.maxDrinks}
+                keyboardType="number-pad"
+                label="Maximum drinks"
+                onChangeText={setMaxDrinks}
+                value={maxDrinks}
               />
-            </View>
-            <View style={styles.optionRow}>
-              <OptionButton
-                isSelected={goHomeReminderEnabled}
-                label={`Go-home reminder: ${goHomeReminderEnabled ? "on" : "off"}`}
-                onPress={() => setGoHomeReminderEnabled((enabled) => !enabled)}
-              />
-            </View>
-          </View>
-        </View>
 
-        <Pressable onPress={handleStartSession} style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Start Session</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+              <View style={styles.field}>
+                <Text style={styles.label}>Pacing type</Text>
+                <View style={styles.optionRow}>
+                  <OptionButton
+                    isSelected={pacingType === "fixed"}
+                    label="Fixed interval"
+                    onPress={() => setPacingType("fixed")}
+                  />
+                  <OptionButton
+                    isSelected={pacingType === "dynamic"}
+                    label="Dynamic interval"
+                    onPress={() => setPacingType("dynamic")}
+                  />
+                </View>
+              </View>
+
+              <Field
+                error={errors.firstIntervalMinutes}
+                keyboardType="number-pad"
+                label={pacingType === "fixed" ? "Drink interval in minutes" : "First 3 drinks"}
+                onChangeText={setFirstIntervalMinutes}
+                value={firstIntervalMinutes}
+              />
+
+              {pacingType === "dynamic" ? (
+                <>
+                  <View style={styles.summaryCard}>
+                    <Text style={styles.label}>Switch point</Text>
+                    <Text style={styles.cardBody}>After drink {switchAfterDrink}</Text>
+                  </View>
+                  <Field
+                    error={errors.laterIntervalMinutes}
+                    keyboardType="number-pad"
+                    label="After that"
+                    onChangeText={setLaterIntervalMinutes}
+                    value={laterIntervalMinutes}
+                  />
+                </>
+              ) : null}
+
+              <Field
+                error={errors.spendingCap}
+                keyboardType="decimal-pad"
+                label="Spending cap"
+                onChangeText={setSpendingCap}
+                placeholder="Optional"
+                value={spendingCap}
+              />
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Primary drink type</Text>
+                <View style={styles.optionGrid}>
+                  {primaryDrinkTypes.map((drinkType) => (
+                    <OptionButton
+                      key={drinkType}
+                      isSelected={primaryDrinkType === drinkType}
+                      label={drinkType}
+                      onPress={() => setPrimaryDrinkType(drinkType)}
+                    />
+                  ))}
+                </View>
+              </View>
+
+              {primaryDrinkType === "Spirits / liquor" || primaryDrinkType === "Cocktails" ? (
+                <View style={styles.warningCard}>
+                  <Text style={styles.warningText}>
+                    Stronger drinks make it easier to cross the line without noticing. Consider a
+                    lower max or longer interval.
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={styles.sectionCard}>
+              <Text style={styles.formTitle}>Pacing preview</Text>
+              <View style={styles.summaryCard}>
+                <Text style={styles.label}>Current pacing rule</Text>
+                <Text style={styles.cardBody}>
+                  {getPacingSummary(
+                    planningPacing ??
+                      (pacingType === "fixed"
+                        ? {
+                            intervalMinutes: 0,
+                            type: "fixed",
+                          }
+                        : {
+                            firstIntervalMinutes: 0,
+                            laterIntervalMinutes: 0,
+                            switchAfterDrink,
+                            type: "dynamic",
+                          }),
+                  )}
+                </Text>
+                {estimatedEnd ? (
+                  <Text style={styles.estimateText}>{formatEstimatedEndTime(estimatedEnd)}</Text>
+                ) : null}
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Behavioral reminders</Text>
+                <View style={styles.optionGrid}>
+                  <OptionButton
+                    isSelected={foodReminderEnabled}
+                    label={`Food reminder: ${foodReminderEnabled ? "on" : "off"}`}
+                    onPress={() => setFoodReminderEnabled((enabled) => !enabled)}
+                  />
+                  <OptionButton
+                    isSelected={goHomeReminderEnabled}
+                    label={`Go-home reminder: ${goHomeReminderEnabled ? "on" : "off"}`}
+                    onPress={() => setGoHomeReminderEnabled((enabled) => !enabled)}
+                  />
+                </View>
+              </View>
+            </View>
+
+            <PrimaryButton onPress={handleStartSession}>Start Session</PrimaryButton>
+          </ScrollView>
+        </AppScreen>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
@@ -385,7 +417,7 @@ function Field({ error, keyboardType, label, onChangeText, placeholder, value }:
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#8b9692"
+        placeholderTextColor={colors.mutedLight}
         style={[styles.input, error ? styles.inputError : null]}
         value={value}
       />
@@ -416,169 +448,200 @@ function OptionButton({ isSelected, label, onPress }: OptionButtonProps) {
 const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
-    backgroundColor: "#f7f4ef",
+    backgroundColor: colors.wine,
   },
   screen: {
-    gap: 20,
-    padding: 24,
-    paddingBottom: 40,
-    backgroundColor: "#f7f4ef",
+    flexGrow: 1,
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxxl,
+  },
+  header: {
+    gap: spacing.xs,
+  },
+  kicker: {
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 28,
-    fontWeight: "800",
-    lineHeight: 34,
+    color: colors.card,
+    ...typography.screenTitle,
   },
-  body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
+  subtitle: {
+    color: colors.cardMuted,
+    ...typography.body,
   },
   section: {
-    gap: 12,
+    gap: spacing.md,
   },
   sectionTitle: {
-    color: "#1f2a2e",
-    fontSize: 20,
-    fontWeight: "800",
+    color: colors.card,
+    ...typography.sectionTitle,
   },
   presetCard: {
-    gap: 8,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.soft,
   },
   presetCardSelected: {
-    borderColor: "#2f6f62",
-    backgroundColor: "#e3eee9",
+    backgroundColor: colors.wine,
+    borderColor: colors.accent,
+    borderWidth: 1.5,
+  },
+  presetHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+    justifyContent: "space-between",
   },
   presetName: {
-    color: "#1f2a2e",
+    flex: 1,
+    color: colors.wineDeep,
     fontSize: 17,
-    fontWeight: "800",
+    fontWeight: "900",
+    lineHeight: 23,
+  },
+  presetNameSelected: {
+    color: colors.card,
+  },
+  selectedBadge: {
+    overflow: "hidden",
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: "900",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   presetDetail: {
-    color: "#2f6f62",
+    color: colors.accentDark,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
     lineHeight: 20,
   },
+  presetDetailSelected: {
+    color: colors.accentLight,
+  },
+  selectedBody: {
+    color: colors.cardMuted,
+  },
   guidanceCard: {
-    gap: 8,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fff7df",
-    borderColor: "#ead48b",
-    borderWidth: 1,
+    borderColor: colors.accent,
   },
   guidanceTitle: {
-    color: "#1f2a2e",
-    fontSize: 16,
-    fontWeight: "800",
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
   },
   guidanceText: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     lineHeight: 21,
   },
-  form: {
-    gap: 16,
+  sectionCard: {
+    gap: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
+    borderWidth: 1,
+    ...shadows.card,
+  },
+  formTitle: {
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
   },
   field: {
-    gap: 8,
+    gap: spacing.sm,
   },
   label: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   input: {
     minHeight: 52,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.white,
+    borderColor: colors.border,
     borderWidth: 1,
-    color: "#1f2a2e",
+    color: colors.ink,
     fontSize: 18,
   },
   inputError: {
-    borderColor: "#b65353",
+    borderColor: colors.destructive,
   },
   error: {
-    color: "#9b3f3f",
+    color: colors.destructive,
     fontSize: 14,
     lineHeight: 20,
   },
   optionRow: {
     flexDirection: "row",
-    gap: 8,
+    flexWrap: "wrap",
+    gap: spacing.sm,
   },
   optionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
   },
   optionButton: {
-    borderRadius: 8,
-    borderColor: "#cfc6ba",
+    borderRadius: radius.pill,
+    borderColor: colors.border,
     borderWidth: 1,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   optionButtonSelected: {
-    borderColor: "#2f6f62",
-    backgroundColor: "#e3eee9",
+    borderColor: colors.accent,
+    backgroundColor: colors.wine,
   },
   optionButtonText: {
-    color: "#1f2a2e",
+    color: colors.ink,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   optionButtonTextSelected: {
-    color: "#2f6f62",
+    color: colors.accentLight,
   },
   warningCard: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fff7df",
-    borderColor: "#ead48b",
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.warningSoft,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
   },
   warningText: {
-    color: "#52605f",
+    color: colors.ink,
     fontSize: 15,
     lineHeight: 21,
   },
-  estimateText: {
-    color: "#52605f",
-    fontSize: 14,
-    fontWeight: "700",
-    lineHeight: 20,
-  },
   summaryCard: {
-    gap: 8,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.sm,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.border,
     borderWidth: 1,
   },
-  primaryButton: {
-    alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+  cardBody: {
+    color: colors.muted,
+    ...typography.body,
   },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
+  estimateText: {
+    color: colors.accentDark,
+    fontSize: 14,
+    fontWeight: "900",
+    lineHeight: 20,
   },
 });

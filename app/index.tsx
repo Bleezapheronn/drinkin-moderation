@@ -1,10 +1,12 @@
-import { Link, router } from "expo-router";
+import { Stack, router } from "expo-router";
 import type { Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { DrinkingSession, SessionPresetName, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getSessionDateRange, getSessionSummaryLine, getSessionTitle } from "../utils/session-format";
 import { getTotalSpent } from "../utils/session-metrics";
@@ -42,101 +44,119 @@ export default function HomeScreen() {
 
   if (isRestoringSettings || !settings.onboardingCompleted) {
     return (
-      <View style={styles.loadingScreen}>
-        <Text style={styles.kicker}>OMD</Text>
-        <Text style={styles.body}>Getting the app ready.</Text>
-      </View>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <AppScreen>
+          <View style={styles.loadingScreen}>
+            <Text style={styles.kicker}>OMD</Text>
+            <Text style={styles.loadingTitle}>Getting the app ready.</Text>
+          </View>
+        </AppScreen>
+      </>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.topBar}>
-        <View style={styles.brandBlock}>
-          <Text style={styles.kicker}>OMD</Text>
-          <Text style={styles.title}>One More Drink</Text>
-          <Text style={styles.subtitle}>Make a sober plan. Stick to it.</Text>
-        </View>
-        <Pressable
-          accessibilityLabel="Settings"
-          accessibilityRole="button"
-          onPress={() => router.push("/settings" as Href)}
-          style={styles.settingsButton}
-        >
-          <Text style={styles.settingsButtonText}>⚙</Text>
-        </Pressable>
-      </View>
-
-      {storageError ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>{storageError}</Text>
-        </View>
-      ) : null}
-
-      {session ? (
-        <ActiveSessionCard
-          currency={settings.currency}
-          isRestoring={isRestoring}
-          now={now}
-          session={session}
-        />
-      ) : (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Start a session</Text>
-          <Text style={styles.body}>
-            Choose a preset for a faster setup, or build the plan manually.
-          </Text>
-          <View style={styles.quickStartGrid}>
-            {quickStartPresets.map((presetName) => (
-              <Pressable
-                key={presetName}
-                onPress={() =>
-                  router.push({
-                    pathname: "/new-session",
-                    params: { preset: presetName },
-                  } as Href)
-                }
-                style={styles.quickStartButton}
-              >
-                <Text style={styles.quickStartText}>{presetName}</Text>
-              </Pressable>
-            ))}
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <AppScreen>
+        <ScrollView contentContainerStyle={styles.screen}>
+          <View style={styles.topBar}>
+            <View style={styles.brandBlock}>
+              <Text style={styles.kicker}>OMD</Text>
+              <Text style={styles.title}>One More Drink</Text>
+              <Text style={styles.subtitle}>Make a sober plan. Stick to it.</Text>
+            </View>
+            <Pressable
+              accessibilityLabel="Settings"
+              accessibilityRole="button"
+              onPress={() => router.push("/settings" as Href)}
+              style={styles.settingsButton}
+            >
+              <Text style={styles.settingsButtonText}>⚙</Text>
+            </Pressable>
           </View>
-          <Link href="/new-session" style={styles.primaryButton}>
-            Start a new session
-          </Link>
-        </View>
-      )}
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Sessions</Text>
-          {recentSessions.length > 0 ? (
-            <Link href={"/session-history" as Href} style={styles.inlineLink}>
-              View all
-            </Link>
+          {storageError ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{storageError}</Text>
+            </View>
           ) : null}
-        </View>
-        {recentSessions.length > 0 ? (
-          recentSessions.map((recentSession, index) => (
-            <RecentSessionCard
-              key={`${recentSession.startedAt}-${recentSession.endedAt}`}
-              currency={settings.currency}
-              session={recentSession}
-              sessionIndex={index}
-            />
-          ))
-        ) : (
-          <View style={styles.emptyCard}>
-            <Text style={styles.body}>No completed sessions yet. Your first summary will appear here.</Text>
-          </View>
-        )}
-      </View>
 
-      <Text style={styles.privacyNote}>
-        OMD stores your session data locally on this device.
-      </Text>
-    </ScrollView>
+          {session ? (
+            <ActiveSessionCard
+              currency={settings.currency}
+              isRestoring={isRestoring}
+              now={now}
+              session={session}
+            />
+          ) : (
+            <HeroCard>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardEyebrow}>Tonight plan</Text>
+                <Text style={styles.heroCardTitle}>Start a session</Text>
+              </View>
+              <Text style={styles.cardBody}>
+                Choose a preset for a faster setup, or build the plan manually.
+              </Text>
+              <View style={styles.quickStartGrid}>
+                {quickStartPresets.map((presetName) => (
+                  <Pressable
+                    key={presetName}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/new-session",
+                        params: { preset: presetName },
+                      } as Href)
+                    }
+                    style={styles.quickStartButton}
+                  >
+                    <Text style={styles.quickStartText}>{presetName}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <PrimaryButton onPress={() => router.push("/new-session" as Href)}>
+                Start a new session
+              </PrimaryButton>
+            </HeroCard>
+          )}
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Sessions</Text>
+              {recentSessions.length > 0 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push("/session-history" as Href)}
+                >
+                  <Text style={styles.inlineLink}>View all</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            {recentSessions.length > 0 ? (
+              recentSessions.map((recentSession, index) => (
+                <RecentSessionCard
+                  key={`${recentSession.startedAt}-${recentSession.endedAt}`}
+                  currency={settings.currency}
+                  session={recentSession}
+                  sessionIndex={index}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyCard}>
+                <Text style={styles.cardBody}>
+                  No completed sessions yet. Your first summary will appear here.
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.privacyNote}>
+            OMD stores your session data locally on this device.
+          </Text>
+        </ScrollView>
+      </AppScreen>
+    </>
   );
 }
 
@@ -155,10 +175,14 @@ function ActiveSessionCard({ currency, isRestoring, now, session }: ActiveSessio
 
   return (
     <View style={styles.activeCard}>
+      <View style={styles.goldRule} />
       <View style={styles.activeHeader}>
-        <View>
+        <View style={styles.activeTitleBlock}>
+          <Text style={styles.cardEyebrow}>In progress</Text>
           <Text style={styles.cardTitle}>Active session</Text>
-          <Text style={styles.activeMeta}>{getSessionTitle(session)} · {session.primaryDrinkType}</Text>
+          <Text style={styles.activeMeta}>
+            {getSessionTitle(session)} · {session.primaryDrinkType}
+          </Text>
         </View>
       </View>
       <View style={styles.activeStats}>
@@ -168,9 +192,9 @@ function ActiveSessionCard({ currency, isRestoring, now, session }: ActiveSessio
           <MiniStat label="Spending left" value={formatCurrency(remainingBudget, currency)} />
         ) : null}
       </View>
-      <Link href="/active-session" style={styles.primaryButton}>
+      <PrimaryButton onPress={() => router.push("/active-session" as Href)}>
         Resume session
-      </Link>
+      </PrimaryButton>
     </View>
   );
 }
@@ -183,8 +207,12 @@ type MiniStatProps = {
 function MiniStat({ label, value }: MiniStatProps) {
   return (
     <View style={styles.miniStat}>
-      <Text style={styles.miniStatValue}>{value}</Text>
-      <Text style={styles.miniStatLabel}>{label}</Text>
+      <Text numberOfLines={1} adjustsFontSizeToFit style={styles.miniStatValue}>
+        {value}
+      </Text>
+      <Text numberOfLines={1} style={styles.miniStatLabel}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -201,9 +229,12 @@ function RecentSessionCard({ currency, session, sessionIndex }: RecentSessionCar
       onPress={() => router.push(`/session-detail/${sessionIndex}` as Href)}
       style={styles.recentCard}
     >
-      <Text style={styles.recentTitle}>{getSessionTitle(session)}</Text>
-      <Text style={styles.recentDate}>{getSessionDateRange(session)}</Text>
-      <Text style={styles.recentText}>{getSessionSummaryLine(session, currency)}</Text>
+      <View style={styles.recentAccent} />
+      <View style={styles.recentCopy}>
+        <Text style={styles.recentTitle}>{getSessionTitle(session)}</Text>
+        <Text style={styles.recentDate}>{getSessionDateRange(session)}</Text>
+        <Text style={styles.recentText}>{getSessionSummaryLine(session, currency)}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -229,213 +260,235 @@ const styles = StyleSheet.create({
   loadingScreen: {
     flex: 1,
     justifyContent: "center",
-    gap: 8,
-    padding: 24,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.sm,
+    padding: spacing.xxl,
+  },
+  loadingTitle: {
+    color: colors.card,
+    ...typography.sectionTitle,
   },
   screen: {
     flexGrow: 1,
-    gap: 22,
-    padding: 24,
-    paddingTop: 48,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.xxl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xxxl,
+    paddingBottom: spacing.xxxl,
   },
   topBar: {
     alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
+    gap: spacing.lg,
   },
   brandBlock: {
     flex: 1,
-    gap: 5,
+    gap: spacing.xs,
   },
   kicker: {
-    color: "#3f6f63",
-    fontSize: 14,
-    fontWeight: "900",
-    letterSpacing: 0,
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 32,
-    fontWeight: "900",
-    lineHeight: 38,
+    color: colors.card,
+    ...typography.heroTitle,
   },
   subtitle: {
-    color: "#52605f",
+    color: colors.cardMuted,
     fontSize: 17,
+    fontWeight: "700",
     lineHeight: 24,
   },
   settingsButton: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#cfc6ba",
+    borderRadius: radius.pill,
+    backgroundColor: colors.card,
+    borderColor: colors.accent,
     borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
+    ...shadows.soft,
   },
   settingsButtonText: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 20,
-    fontWeight: "800",
+    fontWeight: "900",
     lineHeight: 22,
   },
-  card: {
-    gap: 16,
-    padding: 20,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+  notice: {
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
   },
-  activeCard: {
-    gap: 16,
-    padding: 20,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#b9d6cf",
+  noticeText: {
+    color: colors.ink,
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  cardHeader: {
+    gap: spacing.xs,
+  },
+  cardEyebrow: {
+    color: colors.accentDark,
+    textTransform: "uppercase",
+    ...typography.caption,
+  },
+  heroCardTitle: {
+    color: colors.wineDeep,
+    ...typography.screenTitle,
+  },
+  cardTitle: {
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
+  },
+  cardBody: {
+    color: colors.muted,
+    ...typography.body,
+  },
+  quickStartGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  quickStartButton: {
+    borderRadius: radius.pill,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
+    backgroundColor: colors.accentSoft,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  quickStartText: {
+    color: colors.wineDeep,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  activeCard: {
+    gap: spacing.lg,
+    overflow: "hidden",
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
+    borderWidth: 1.5,
+    ...shadows.card,
+  },
+  goldRule: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: colors.accent,
   },
   activeHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
+    gap: spacing.md,
+  },
+  activeTitleBlock: {
+    flex: 1,
+    gap: spacing.xs,
   },
   activeMeta: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     fontWeight: "700",
     lineHeight: 21,
   },
   activeStats: {
     flexDirection: "row",
-    gap: 10,
+    gap: spacing.sm,
   },
   miniStat: {
     flex: 1,
-    gap: 4,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.xs,
+    minHeight: 72,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.border,
+    borderWidth: 1,
   },
   miniStatValue: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 20,
     fontWeight: "900",
+    lineHeight: 25,
   },
   miniStatLabel: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 12,
     fontWeight: "800",
-  },
-  cardTitle: {
-    color: "#1f2a2e",
-    fontSize: 20,
-    fontWeight: "800",
-  },
-  body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
-  },
-  quickStartGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  quickStartButton: {
-    borderRadius: 8,
-    borderColor: "#cfc6ba",
-    borderWidth: 1,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  quickStartText: {
-    color: "#1f2a2e",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  primaryButton: {
-    overflow: "hidden",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "800",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    textAlign: "center",
+    lineHeight: 16,
   },
   section: {
-    gap: 12,
+    gap: spacing.md,
   },
   sectionHeader: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
+    gap: spacing.md,
   },
   sectionTitle: {
-    color: "#1f2a2e",
-    fontSize: 22,
-    fontWeight: "900",
+    color: colors.card,
+    ...typography.sectionTitle,
   },
   inlineLink: {
-    color: "#2f6f62",
+    color: colors.accentLight,
     fontSize: 15,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   recentCard: {
-    gap: 6,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    flexDirection: "row",
+    overflow: "hidden",
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.soft,
+  },
+  recentAccent: {
+    width: 5,
+    backgroundColor: colors.accent,
+  },
+  recentCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    padding: spacing.lg,
   },
   recentTitle: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   recentDate: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     fontWeight: "700",
     lineHeight: 21,
   },
   recentText: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     lineHeight: 21,
   },
   emptyCard: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.soft,
   },
   privacyNote: {
-    color: "#52605f",
+    color: colors.cardMuted,
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",
-  },
-  notice: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
-    borderWidth: 1,
-  },
-  noticeText: {
-    color: "#52605f",
-    fontSize: 15,
-    lineHeight: 21,
   },
 });
