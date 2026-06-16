@@ -25,12 +25,8 @@ const beerLayerAssets: BeerLayerAssets = {
 };
 
 const beerCanvas = {
-  height: 190,
-  innerHeight: 134,
-  innerWidth: 112,
-  innerX: 30,
-  innerY: 41,
-  width: 176,
+  fillAnimationHeight: 134,
+  size: 190,
 };
 
 type DrinkProgressVisualProps = {
@@ -110,24 +106,26 @@ function LayeredBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) 
 }
 
 function AssetBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
+  const liquidClipHeight = fillHeight.interpolate({
+    inputRange: [0, beerCanvas.fillAnimationHeight],
+    outputRange: [0, beerCanvas.size],
+  });
   const foamTranslateY = fillHeight.interpolate({
-    inputRange: [0, beerCanvas.innerHeight],
-    outputRange: [beerCanvas.innerHeight, 0],
+    inputRange: [0, beerCanvas.fillAnimationHeight],
+    outputRange: [beerCanvas.size, 0],
   });
 
   return (
     <>
       <View style={styles.vesselShadow} />
       <View style={styles.assetBeerStage}>
-        <View style={styles.assetBeerLiquidViewport}>
-          <Animated.View style={[styles.assetBeerFillStack, { height: fillHeight }]}>
-            <Image
-              accessibilityIgnoresInvertColors
-              source={beerLayerAssets.liquid}
-              style={styles.assetBeerLiquid}
-            />
-          </Animated.View>
-        </View>
+        <Animated.View style={[styles.assetBeerLiquidClip, { height: liquidClipHeight }]}>
+          <Image
+            accessibilityIgnoresInvertColors
+            source={beerLayerAssets.liquid}
+            style={styles.assetBeerLiquidLayer}
+          />
+        </Animated.View>
         <Animated.View
           style={[
             styles.assetBeerFoamLayer,
@@ -137,12 +135,12 @@ function AssetBeerVisual({ clampedFill, fillHeight }: LayeredBeerVisualProps) {
             },
           ]}
         >
-          <Image accessibilityIgnoresInvertColors source={beerLayerAssets.foam} style={styles.assetBeerFoam} />
+          <Image accessibilityIgnoresInvertColors source={beerLayerAssets.foam} style={styles.assetBeerRegisteredLayer} />
         </Animated.View>
         <Image
           accessibilityIgnoresInvertColors
           source={beerLayerAssets.mug}
-          style={styles.assetBeerMug}
+          style={[styles.assetBeerRegisteredLayer, styles.assetBeerMugLayer]}
         />
         {beerLayerAssets.glass ? (
           <Image
@@ -384,58 +382,44 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 18,
   },
   assetBeerStage: {
-    alignItems: "center",
-    height: beerCanvas.height,
-    justifyContent: "flex-end",
-    width: beerCanvas.width,
-  },
-  assetBeerMug: {
-    position: "absolute",
-    bottom: 0,
-    width: beerCanvas.width,
-    height: beerCanvas.height,
-    resizeMode: "contain",
-    zIndex: 6,
-  },
-  assetBeerLiquidViewport: {
-    position: "absolute",
-    left: beerCanvas.innerX,
-    top: beerCanvas.innerY,
-    width: beerCanvas.innerWidth,
-    height: beerCanvas.innerHeight,
+    height: beerCanvas.size,
     overflow: "hidden",
-    zIndex: 2,
+    width: beerCanvas.size,
   },
-  assetBeerFillStack: {
+  assetBeerRegisteredLayer: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: beerCanvas.size,
+    height: beerCanvas.size,
+    resizeMode: "contain",
+  },
+  assetBeerLiquidClip: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     overflow: "hidden",
+    zIndex: 2,
   },
-  assetBeerLiquid: {
+  assetBeerLiquidLayer: {
     position: "absolute",
-    left: -beerCanvas.innerX,
-    bottom: -(beerCanvas.height - beerCanvas.innerY - beerCanvas.innerHeight),
-    width: beerCanvas.width,
-    height: beerCanvas.height,
+    left: 0,
+    bottom: 0,
+    width: beerCanvas.size,
+    height: beerCanvas.size,
     resizeMode: "contain",
   },
   assetBeerFoamLayer: {
     position: "absolute",
     left: 0,
     top: 0,
-    width: beerCanvas.width,
-    height: beerCanvas.height,
+    width: beerCanvas.size,
+    height: beerCanvas.size,
     zIndex: 4,
   },
-  assetBeerFoam: {
-    width: beerCanvas.width,
-    height: beerCanvas.height,
-    resizeMode: "contain",
-  },
-  hiddenLayer: {
-    opacity: 0,
+  assetBeerMugLayer: {
+    zIndex: 6,
   },
   soloCupVessel: {
     width: 96,
