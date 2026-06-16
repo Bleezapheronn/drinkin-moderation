@@ -12,13 +12,16 @@ import type { PrimaryDrinkType } from "../context/session";
 
 const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 
+// Tuned to assets/illustrations/beer-mug-overlay.png so the native fill sits
+// under the illustrated rim/walls without leaving visible side gutters.
 const beerMugGeometry = {
-  foamHeight: 18,
-  innerHeight: 122,
-  innerWidth: 88,
-  innerX: 28,
-  innerY: 37,
+  foamHeight: 24,
+  innerHeight: 132,
+  innerWidth: 104,
+  innerX: 22,
+  innerY: 36,
   mugSize: 190,
+  stageOffsetX: 21,
   stageSize: 190,
 };
 
@@ -47,7 +50,10 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   return (
     <View style={styles.wrapper}>
       <View style={styles.visualStage}>
-        <ProgressHalo clampedFill={clampedFill} />
+        <ProgressHalo
+          clampedFill={clampedFill}
+          variant={drinkType === "Beer" ? "beer" : "default"}
+        />
         {drinkType === "Beer" ? (
           <LayeredBeerVisual fillHeight={fillHeight} />
         ) : (
@@ -60,19 +66,26 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
 
 type ProgressHaloProps = {
   clampedFill: number;
+  variant?: "beer" | "default";
 };
 
-function ProgressHalo({ clampedFill }: ProgressHaloProps) {
+function ProgressHalo({ clampedFill, variant = "default" }: ProgressHaloProps) {
+  const isBeer = variant === "beer";
+
   return (
-    <View style={styles.progressHalo}>
+    <View style={[styles.progressHalo, isBeer ? styles.beerProgressHalo : null]}>
       {Array.from({ length: 34 }).map((_, index) => (
         <View
           key={index}
           style={[
             styles.haloTick,
+            isBeer ? styles.beerHaloTick : null,
             {
               opacity: index / 33 <= clampedFill ? 0.92 : 0.18,
-              transform: [{ rotate: `${index * 7.5 - 126}deg` }, { translateY: -91 }],
+              transform: [
+                { rotate: `${index * 7.5 - 126}deg` },
+                { translateY: isBeer ? -102 : -91 },
+              ],
             },
           ]}
         />
@@ -269,6 +282,12 @@ const styles = StyleSheet.create({
     height: 210,
     borderRadius: 105,
   },
+  beerProgressHalo: {
+    top: -5,
+    width: 232,
+    height: 232,
+    borderRadius: 116,
+  },
   haloTick: {
     position: "absolute",
     top: 99,
@@ -277,6 +296,11 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 3,
     backgroundColor: "#d69a18",
+  },
+  beerHaloTick: {
+    top: 110,
+    left: 114,
+    height: 17,
   },
   vessel: {
     overflow: "hidden",
@@ -295,6 +319,7 @@ const styles = StyleSheet.create({
   beerOverlayStage: {
     height: beerMugGeometry.stageSize,
     overflow: "visible",
+    transform: [{ translateX: beerMugGeometry.stageOffsetX }],
     width: beerMugGeometry.stageSize,
   },
   beerMugOverlay: {
@@ -320,8 +345,8 @@ const styles = StyleSheet.create({
   },
   beerNativeFillStack: {
     backgroundColor: "#d88b08",
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
     bottom: 0,
     left: 0,
     overflow: "hidden",
@@ -330,25 +355,25 @@ const styles = StyleSheet.create({
   },
   beerNativeFoam: {
     backgroundColor: "#fff2cf",
-    borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     height: beerMugGeometry.foamHeight,
-    left: 4,
+    left: 1,
     position: "absolute",
-    right: 4,
+    right: 1,
     top: 0,
     zIndex: 3,
   },
   beerNativeFoamSoftTop: {
     backgroundColor: "#fff8e5",
     borderRadius: 10,
-    height: 8,
-    left: 7,
+    height: 10,
+    left: 6,
     position: "absolute",
-    right: 9,
-    top: -2,
+    right: 6,
+    top: -3,
   },
   beerNativeFoamDot: {
     backgroundColor: "rgba(255, 255, 255, 0.52)",
@@ -359,20 +384,20 @@ const styles = StyleSheet.create({
     width: 6,
   },
   beerNativeFoamDotOne: {
-    left: 18,
+    left: 22,
   },
   beerNativeFoamDotTwo: {
-    right: 16,
-    top: 8,
+    right: 20,
+    top: 10,
     width: 5,
     height: 5,
   },
   beerNativeSurface: {
     backgroundColor: "rgba(248, 215, 123, 0.5)",
     height: 5,
-    left: 6,
+    left: 4,
     position: "absolute",
-    right: 6,
+    right: 4,
     top: beerMugGeometry.foamHeight - 1,
   },
   beerNativeBubble: {
