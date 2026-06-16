@@ -16,12 +16,13 @@ const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 // under the illustrated rim/walls without leaving visible side gutters.
 const beerMugGeometry = {
   foamHeight: 26,
+  foamLift: 22,
   haloSize: 232,
   haloTickLeft: 114,
   haloTickTop: 110,
   haloTickTranslateY: -102,
   haloTop: -5,
-  innerHeight: 132,
+  innerHeight: 136,
   innerWidth: 110,
   innerX: 18,
   innerY: 30,
@@ -109,21 +110,29 @@ type NativeDrinkVisualProps = {
 type LayeredBeerVisualProps = Pick<NativeDrinkVisualProps, "fillHeight">;
 
 function LayeredBeerVisual({ fillHeight }: LayeredBeerVisualProps) {
+  const foamOpacity = fillHeight.interpolate({
+    inputRange: [0, 2, 3],
+    outputRange: [0, 0, 1],
+    extrapolate: "clamp",
+  });
+
   return (
     <>
       <View style={styles.vesselShadow} />
       <View style={styles.beerOverlayStage}>
         <View style={styles.beerNativeFillBounds}>
           <Animated.View style={[styles.beerNativeFillStack, { height: fillHeight }]}>
-            <View style={styles.beerNativeFoam}>
+            <View style={styles.beerNativeLiquidLayer}>
+              <View style={styles.beerNativeSurface} />
+              <View style={[styles.beerNativeBubble, styles.beerNativeBubbleOne]} />
+              <View style={[styles.beerNativeBubble, styles.beerNativeBubbleTwo]} />
+              <View style={[styles.beerNativeBubble, styles.beerNativeBubbleThree]} />
+            </View>
+            <Animated.View style={[styles.beerNativeFoam, { opacity: foamOpacity }]}>
               <View style={styles.beerNativeFoamSoftTop} />
               <View style={[styles.beerNativeFoamDot, styles.beerNativeFoamDotOne]} />
               <View style={[styles.beerNativeFoamDot, styles.beerNativeFoamDotTwo]} />
-            </View>
-            <View style={styles.beerNativeSurface} />
-            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleOne]} />
-            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleTwo]} />
-            <View style={[styles.beerNativeBubble, styles.beerNativeBubbleThree]} />
+            </Animated.View>
           </Animated.View>
         </View>
         <Image
@@ -351,12 +360,16 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   beerNativeFillStack: {
-    backgroundColor: "#d88b08",
     bottom: 0,
     left: 0,
-    overflow: "hidden",
+    overflow: "visible",
     position: "absolute",
     right: 0,
+  },
+  beerNativeLiquidLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#d88b08",
+    overflow: "hidden",
   },
   beerNativeFoam: {
     backgroundColor: "#fff2cf",
@@ -368,7 +381,7 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
     right: 0,
-    top: 0,
+    top: -beerMugGeometry.foamLift,
     zIndex: 3,
   },
   beerNativeFoamSoftTop: {

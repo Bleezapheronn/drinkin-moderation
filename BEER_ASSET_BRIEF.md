@@ -1,154 +1,167 @@
-# Beer Asset Refinement Brief
+Use the mug overlay source asset at:
 
-We are refining the Beer visual in One More Drink using a new master source image.
+`C:\dev\one-more-drink\assets\illustrations\source\beer-mug-overlay-source.png`
 
-Context:
-The current layered beer visual proved the concept, but the production assets are still too detailed and not ideal for animation.
+We are implementing the Beer visual in **One More Drink** using the **engineering route**:
 
-We now have a better source image that represents the target design:
+- static mug overlay image
+- code-native liquid
+- code-native foam
 
-- a simplified empty beer mug
-- a simplified liquid fill
-- a simplified foam top
+## Goal
 
-This source image should become the new master reference for the Beer visual.
+Replace the current beer mug overlay and refine the Beer visual so it looks clean, aligned, and reliable in motion.
 
-Source image:
-`assets/illustrations/source/beer_mug_animation_asset_guide.png`
+## Context
 
-If that exact file does not exist, search the repo for the equivalent new beer asset guide image and use it instead.
+The current engineered version proved that alignment is workable, but it still has visual problems:
 
-Goal:
-Replace the existing beer animation assets with simplified illustrated assets derived from the new source image, preserving transparency and improving the beer-emptying animation.
+1. The mug interior is still slightly tapered, while the code-native liquid is rectangular.
+2. There is an inner arc at the base that makes the liquid look like it is not sitting properly.
+3. The foam needs better fit at the top of the liquid.
+4. The mug and contents should sit more cleanly within the halo.
 
-Important design intent:
+The new source image is the approved direction:
 
-1. The empty mug should be a clean neutral outline/container.
-   - No distracting reflections inside the main liquid area.
-   - It should clearly show the mug shape even when empty.
-   - It should not obscure the liquid or foam layers.
-2. The liquid fill should be completely separate from the foam.
-   - It should be simple and clean.
-   - No details that will look distorted when clipped vertically.
-   - A subtle amber gradient and fine bubbles are okay, but no strong reflections/highlights that break animation.
-3. The foam should be a more uniform rectangular cap shape.
-   - It should sit cleanly on top of the liquid.
-   - It should remain visually consistent through animation.
-   - It should not have irregular lumpy geometry that makes movement look awkward.
+- good mug shape
+- good handle
+- good base
+- simple overlay
+- better fit for code-native liquid/foam
 
-Before editing:
+## Files to inspect first
 
-1. Confirm current directory is:
-   `C:\dev\one-more-drink`
-2. Inspect:
-   - `assets/illustrations/source/beer_mug_animation_asset_guide.png`
-   - `components/DrinkProgressVisual.tsx`
-   - `current files in assets/illustrations/`
+- `components/DrinkProgressVisual.tsx`
+- `assets/illustrations/`
+- `assets/illustrations/source/beer-mug-overlay-source.png`
 
-Tasks:
+## Task 1: prepare the production mug overlay asset
 
-1.  Inspect and isolate the new source image
-    - Confirm the source image exists.
-    - Inspect whether it has transparency.
-    - Determine whether the background, labels, and descriptive text are baked into the image.
-    - Identify crop regions for:
-      - Empty Mug
-      - Liquid Fill
-      - Foam Top
-2.  Create replacement production assets
-    Create or replace:
-    - `assets/illustrations/beer-mug-empty.png`
-    - `assets/illustrations/beer-liquid-fill.png`
-    - `assets/illustrations/beer-foam-top.png`
+Create or replace:
 
-      Requirements:
+`assets/illustrations/beer-mug-overlay.png`
 
-    - These must be production-ready runtime assets.
-    - Remove all labels, decorative text, and surrounding poster layout.
-    - Preserve or create true transparency (alpha) around the asset.
-    - Do not leave a cream, white, checkerboard, or other opaque background.
-    - Crop tightly but keep enough padding that the asset is not clipped.
-    - Keep the three assets visually consistent in style and scale.
+Requirements:
 
-      Specific asset requirements:
+- Use `beer-mug-overlay-source.png` as the basis.
+- Preserve transparency if present. If a checkerboard or baked background exists, remove it cleanly.
+- Keep only the mug overlay:
+  - outer mug outline
+  - believable right-side handle
+  - top rim
+  - flat base
 
-    - Empty mug
-      - Transparent background.
-      - Clean outline of the mug only.
-      - Rim, outer shape, handle, and base should remain.
-      - Remove or reduce interior reflection lines in the liquid area so they do not obscure the animated fill.
-      - Keep it elegant and readable.
+- Do not include liquid, foam, bubbles, or decorative effects.
+- Avoid strong interior reflections.
+- Most important:
+  - remove the unsightly inner base arc
+  - make the mug interior feel like a more uniform rectangular container
+  - the code-native liquid should be able to sit snugly inside it
 
-    - Liquid fill
-      - Transparent background.
-      - A clean amber beer fill shape designed to sit inside the mug.
-      - Separate from foam.
-      - The bottom edge can be rounded if needed, but it must animate/clamp cleanly.
-      - Avoid strong reflections or shapes that look wrong when clipped during height animation.
+- Crop/resize only if needed for runtime usability, but do not distort the mug.
 
-    - Foam top
-      - Transparent background.
-      - A clean, mostly rectangular foam cap with a soft top silhouette and flatter bottom edge.
-      - Designed to sit on top of the liquid fill.
-      - Keep it consistent and suitable for animation.
+## Task 2: refactor Beer visual in DrinkProgressVisual
 
-3.  Update DrinkProgressVisual to use the new simplified assets
-    Update components/DrinkProgressVisual.tsx so the Beer visual uses these replacement assets.
+For Beer:
 
-    Desired layer order:
-    1. Gold progress halo behind the mug
-    2. Animated clipped liquid fill layer
-    3. Foam top positioned at the top of the animated fill
-    4. Empty mug overlay above the liquid and foam
-    5. Base shadow / subtle support styling if needed
+- use `beer-mug-overlay.png` as the static overlay
+- do not rely on image-based liquid/foam assets
+- render liquid natively in React Native
+- render foam natively in React Native
+- keep the gold halo behind the mug
 
-    Behavior requirements:
-    - Preserve the existing progress logic.
-    - The beer should visually empty during countdown.
-    - Ready state should look empty or near-empty.
-    - Final interval should still drain correctly.
-    - Plan complete should not break.
-    - Do not reintroduce checkerboard or opaque rectangles.
+Desired layer order:
 
-    Implementation guidance:
-    - Use simple clipping with overflow: hidden.
-    - Keep the native fallback if an asset is missing.
-    - Keep the current layout dimensions stable unless a small adjustment is needed for proper alignment.
-    - Align the liquid and foam cleanly inside the mug outline.
+1. halo
+2. native liquid
+3. native foam
+4. mug overlay
+5. subtle base shadow
 
-4.  Clean up old asset usage
-    - Remove references to outdated beer assets if they are no longer used.
-    - Do not delete useful source files unless they are clearly obsolete.
-    - Keep the new source guide image in the repo as a source/reference asset.
+## Task 3: refine the geometry/alignment
 
-5.  Preserve all other behavior
-    Do not break:
-    - Active Session screen layout
-    - countdown / Ready / final interval / plan complete states
-    - drink logging
-    - undo drink
-    - spending logging
-    - estimated end / completed-at strip
-    - reminder behavior
-    - active session restore
-6.  Verification
-    Run:
-    - npm ci
-    - npx expo-doctor
-    - npx tsc --noEmit
-    - npm run lint
+Define explicit constants for Beer, such as:
 
-    After implementing:
-    1. Summarize changed files.
-    2. Explain how the source guide image was cropped or isolated.
-    3. Explain how transparency/alpha was preserved or created for each output asset.
-    4. Explain how the new mug asset avoids obscuring the liquid.
-    5. Explain how the liquid and foam assets are now separated for cleaner animation.
-    6. Tell me exactly how to test:
-       - Ready state
-       - normal countdown
-       - final drink interval
-       - plan complete
-    7. Commit with:
-       Replace beer assets with simplified animated layers
-    8. Push to origin.
+- stage size
+- halo size
+- mug image size
+- mug position
+- liquid inner x
+- liquid inner y
+- liquid inner width
+- liquid inner height
+- foam height
+
+Refinement requirements:
+
+### Mug interior
+
+- The liquid container should feel rectangular, not tapered.
+- The liquid should sit closer to the inner walls.
+- Remove the visual impression that the mug narrows toward the bottom.
+
+### Base
+
+- Remove the inner bottom arc effect that makes the liquid look unsupported.
+- The liquid should appear to sit on a flat base.
+
+### Foam
+
+- Foam should be wider and/or slightly taller so it fits the top of the liquid cleanly.
+- It should not look undersized or floating awkwardly.
+- It should stay attached to the liquid top during animation.
+
+### Halo / centering
+
+- Enlarge the halo if needed.
+- Center the composition based on the visible drink body, not the full mug-plus-handle footprint.
+- The mug and liquid should sit comfortably inside the halo.
+
+## Task 4: preserve behavior
+
+Do not break:
+
+- Ready state
+- normal countdown
+- final drink interval
+- plan complete
+- drink logging
+- undo drink
+- spending logging
+- reminder cards
+- estimated end strip
+- active session restore
+- other drink types
+
+## Task 5: verification
+
+Run:
+
+- `npm ci`
+- `npx expo-doctor`
+- `npx tsc --noEmit`
+- `npm run lint`
+
+## After implementing
+
+Please report:
+
+1. changed files
+2. how the mug overlay asset was prepared
+3. whether transparency/background cleanup was needed
+4. the interior alignment constants used
+5. how you tightened the liquid fit
+6. how you removed the inner base arc problem
+7. how you adjusted the foam
+8. how you adjusted the halo/centering
+9. exact testing steps for:
+   - Ready
+   - normal countdown
+   - final drink interval
+   - plan complete
+
+Commit with:
+
+`Refine beer mug overlay and native fill alignment`
+
+Push to origin.
