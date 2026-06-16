@@ -15,12 +15,19 @@ const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 // Tuned to assets/illustrations/beer-mug-overlay.png so the native fill sits
 // under the illustrated rim/walls without leaving visible side gutters.
 const beerMugGeometry = {
-  foamHeight: 24,
+  foamHeight: 26,
+  haloSize: 232,
+  haloTickLeft: 114,
+  haloTickTop: 110,
+  haloTickTranslateY: -102,
+  haloTop: -5,
   innerHeight: 132,
-  innerWidth: 104,
-  innerX: 22,
-  innerY: 36,
+  innerWidth: 110,
+  innerX: 18,
+  innerY: 30,
   mugSize: 190,
+  mugX: 0,
+  mugY: 0,
   stageOffsetX: 21,
   stageSize: 190,
 };
@@ -84,7 +91,7 @@ function ProgressHalo({ clampedFill, variant = "default" }: ProgressHaloProps) {
               opacity: index / 33 <= clampedFill ? 0.92 : 0.18,
               transform: [
                 { rotate: `${index * 7.5 - 126}deg` },
-                { translateY: isBeer ? -102 : -91 },
+                { translateY: isBeer ? beerMugGeometry.haloTickTranslateY : -91 },
               ],
             },
           ]}
@@ -283,10 +290,10 @@ const styles = StyleSheet.create({
     borderRadius: 105,
   },
   beerProgressHalo: {
-    top: -5,
-    width: 232,
-    height: 232,
-    borderRadius: 116,
+    top: beerMugGeometry.haloTop,
+    width: beerMugGeometry.haloSize,
+    height: beerMugGeometry.haloSize,
+    borderRadius: beerMugGeometry.haloSize / 2,
   },
   haloTick: {
     position: "absolute",
@@ -298,8 +305,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#d69a18",
   },
   beerHaloTick: {
-    top: 110,
-    left: 114,
+    top: beerMugGeometry.haloTickTop,
+    left: beerMugGeometry.haloTickLeft,
     height: 17,
   },
   vessel: {
@@ -324,10 +331,10 @@ const styles = StyleSheet.create({
   },
   beerMugOverlay: {
     height: beerMugGeometry.mugSize,
-    left: 0,
+    left: beerMugGeometry.mugX,
     position: "absolute",
     resizeMode: "contain",
-    top: 0,
+    top: beerMugGeometry.mugY,
     width: beerMugGeometry.mugSize,
     zIndex: 4,
   },
@@ -345,8 +352,6 @@ const styles = StyleSheet.create({
   },
   beerNativeFillStack: {
     backgroundColor: "#d88b08",
-    borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5,
     bottom: 0,
     left: 0,
     overflow: "hidden",
@@ -355,14 +360,14 @@ const styles = StyleSheet.create({
   },
   beerNativeFoam: {
     backgroundColor: "#fff2cf",
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     height: beerMugGeometry.foamHeight,
-    left: 1,
+    left: 0,
     position: "absolute",
-    right: 1,
+    right: 0,
     top: 0,
     zIndex: 3,
   },
