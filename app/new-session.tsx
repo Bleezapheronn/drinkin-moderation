@@ -189,7 +189,7 @@ export default function NewSessionScreen() {
           <ScrollView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
             <View style={styles.header}>
               <Text style={styles.kicker}>Plan builder</Text>
-              <Text style={styles.title}>Set the plan while clear-headed.</Text>
+              <Text style={styles.title}>Set the plan while sober.</Text>
               <Text style={styles.subtitle}>
                 Pick a starting point, then adjust anything that needs it.
               </Text>
