@@ -173,7 +173,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>Notifications</Text>
             <ToggleRow
               isEnabled={settings.nextDrinkPhoneNotifications}
-              label="Next-drink phone notification"
+              label="Next drink notification"
               onPress={() =>
                 updateSettings({
                   nextDrinkPhoneNotifications: !settings.nextDrinkPhoneNotifications,
@@ -182,7 +182,7 @@ export default function SettingsScreen() {
             />
             <ToggleRow
               isEnabled={settings.goHomePhoneNotifications}
-              label="Go-home phone notification"
+              label="Go-home notification"
               onPress={() =>
                 updateSettings({
                   goHomePhoneNotifications: !settings.goHomePhoneNotifications,

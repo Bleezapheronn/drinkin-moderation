@@ -1,21 +1,23 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { useSettings } from "../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 
 const onboardingSteps = [
   {
-    body: "Choose your drink limit, pacing interval, and spending cap before the session starts.",
-    title: "Make the plan while sober",
+    body: "Choose a drink limit, pacing interval, and spending cap before the session starts.",
+    title: "Make a sober plan",
   },
   {
-    body: "OMD tracks the interval, reminds you when the drink window is open, and keeps the plan visible.",
-    title: "Let OMD handle the timing",
+    body: "OMD keeps the interval visible, tracks spending, and reminds you when the next drink window opens.",
+    title: "Pace the session",
   },
   {
-    body: "Afterward, review what happened and adjust your next plan.",
-    title: "Review without judgment",
+    body: "Respect the limit, review what happened, and keep your session data local on this device.",
+    title: "Finish with a clear record",
   },
 ];
 
@@ -36,113 +38,133 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.kicker}>OMD</Text>
-        <Text style={styles.tagline}>Make a sober plan. Stick to it.</Text>
-      </View>
+    <AppScreen>
+      <ScrollView contentContainerStyle={styles.screen}>
+        <View style={styles.header}>
+          <Text style={styles.kicker}>OMD</Text>
+          <Text style={styles.tagline}>Make a sober plan. Stick to it.</Text>
+          <Text style={styles.intro}>
+            A practical guardrail for pacing, spending, and getting home with fewer regrets.
+          </Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.stepCount}>
-          {stepIndex + 1} of {onboardingSteps.length}
-        </Text>
-        <Text style={styles.title}>{step.title}</Text>
-        <Text style={styles.body}>{step.body}</Text>
-      </View>
+        <HeroCard>
+          <Text style={styles.stepCount}>
+            Step {stepIndex + 1} of {onboardingSteps.length}
+          </Text>
+          <Text style={styles.title}>{step.title}</Text>
+          <Text style={styles.cardBody}>{step.body}</Text>
+        </HeroCard>
 
-      <View style={styles.dots}>
-        {onboardingSteps.map((item, index) => (
-          <View
-            key={item.title}
-            style={[styles.dot, index === stepIndex ? styles.dotActive : null]}
-          />
-        ))}
-      </View>
+        <View style={styles.dots}>
+          {onboardingSteps.map((item, index) => (
+            <View
+              key={item.title}
+              style={[styles.dot, index === stepIndex ? styles.dotActive : null]}
+            />
+          ))}
+        </View>
 
-      <Pressable onPress={handleNext} style={styles.primaryButton}>
-        <Text style={styles.primaryButtonText}>
+        <View style={styles.disclaimerCard}>
+          <View style={styles.goldRule} />
+          <Text style={styles.disclaimerTitle}>Private by default</Text>
+          <Text style={styles.disclaimerText}>
+            OMD stores session data locally on this device. One More Drink is a planning and
+            harm-reduction tool, not medical advice.
+          </Text>
+        </View>
+
+        <PrimaryButton onPress={handleNext}>
           {isFinalStep ? "Start using OMD" : "Next"}
-        </Text>
-      </Pressable>
-    </View>
+        </PrimaryButton>
+      </ScrollView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "space-between",
-    gap: 24,
-    padding: 24,
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xl,
     paddingTop: 72,
-    paddingBottom: 40,
-    backgroundColor: "#f7f4ef",
+    paddingBottom: spacing.xxxl,
   },
   header: {
-    gap: 8,
+    gap: spacing.sm,
   },
   kicker: {
-    color: "#2f6f62",
-    fontSize: 18,
-    fontWeight: "900",
-    letterSpacing: 0,
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   tagline: {
-    color: "#1f2a2e",
-    fontSize: 34,
-    fontWeight: "900",
-    lineHeight: 40,
+    color: colors.card,
+    ...typography.heroTitle,
   },
-  card: {
-    gap: 14,
-    padding: 22,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
-    borderWidth: 1,
+  intro: {
+    color: colors.cardMuted,
+    fontSize: 17,
+    fontWeight: "700",
+    lineHeight: 24,
   },
   stepCount: {
-    color: "#2f6f62",
-    fontSize: 14,
-    fontWeight: "800",
+    color: colors.accentDark,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 26,
-    fontWeight: "900",
-    lineHeight: 32,
+    color: colors.wineDeep,
+    ...typography.screenTitle,
   },
-  body: {
-    color: "#52605f",
-    fontSize: 17,
-    lineHeight: 25,
+  cardBody: {
+    color: colors.muted,
+    ...typography.body,
   },
   dots: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 8,
-    backgroundColor: "#d6d1c8",
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255, 241, 220, 0.45)",
   },
   dotActive: {
-    width: 22,
-    backgroundColor: "#2f6f62",
+    width: 24,
+    backgroundColor: colors.accentLight,
   },
-  primaryButton: {
-    alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    paddingHorizontal: 18,
-    paddingVertical: 15,
+  disclaimerCard: {
+    gap: spacing.xs,
+    overflow: "hidden",
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+    ...shadows.soft,
   },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "800",
+  goldRule: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: colors.accent,
+  },
+  disclaimerTitle: {
+    color: colors.wineDeep,
+    fontSize: 16,
+    fontWeight: "900",
+    lineHeight: 22,
+  },
+  disclaimerText: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
