@@ -134,6 +134,14 @@ export function InfoStrip({ children, icon, style }: InfoStripProps) {
     <View style={[styles.infoStrip, style]}>
       {icon ? <View style={styles.infoIcon}>{icon}</View> : null}
       <Text style={styles.infoText}>{children}</Text>
+      <View pointerEvents="none" style={styles.skyline}>
+        <View style={[styles.skylineBuilding, styles.skylineLow]} />
+        <View style={[styles.skylineBuilding, styles.skylineMid]} />
+        <View style={[styles.skylineBuilding, styles.skylineTall]} />
+        <View style={[styles.skylineBuilding, styles.skylineMid]} />
+        <View style={[styles.skylineBuilding, styles.skylineLow]} />
+        <Text style={styles.skylineMoon}>◦</Text>
+      </View>
     </View>
   );
 }
@@ -187,7 +195,13 @@ export function ReminderCard({
         </View>
         <Text style={styles.reminderBody}>{body}</Text>
       </View>
-      <Text style={styles.reminderWatermark}>OMD</Text>
+      <View pointerEvents="none" style={styles.reminderWatermark}>
+        <View style={styles.watermarkMugBody}>
+          <View style={styles.watermarkMugShine} />
+          <View style={styles.watermarkMugFoam} />
+        </View>
+        <View style={styles.watermarkMugHandle} />
+      </View>
     </View>
   );
 }
@@ -309,10 +323,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     flexDirection: "row",
-    gap: 6,
-    minHeight: 88,
-    paddingHorizontal: 8,
-    paddingVertical: spacing.md,
+    gap: 4,
+    minHeight: 82,
+    paddingHorizontal: 6,
+    paddingVertical: spacing.sm,
     borderRadius: radius.lg,
     backgroundColor: colors.card,
     borderColor: colors.border,
@@ -321,8 +335,8 @@ const styles = StyleSheet.create({
   },
   statIcon: {
     alignItems: "center",
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
@@ -331,18 +345,20 @@ const styles = StyleSheet.create({
   },
   statText: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 2,
     minWidth: 0,
   },
   statValue: {
     color: colors.wineDeep,
     fontFamily: fontFamilies.cardTitle,
-    fontSize: 19,
-    lineHeight: 25,
+    fontSize: 18,
+    lineHeight: 24,
   },
   statLabel: {
-    color: colors.muted,
     ...typography.caption,
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 16,
   },
   statAction: {
     alignItems: "center",
@@ -389,29 +405,65 @@ const styles = StyleSheet.create({
   infoStrip: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.md,
-    minHeight: 58,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    minHeight: 48,
+    overflow: "hidden",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: radius.md,
-    backgroundColor: colors.card,
-    borderColor: colors.border,
-    borderWidth: 1,
+    backgroundColor: "#fff9ee",
+    borderColor: colors.borderStrong,
+    borderWidth: 1.25,
     ...shadows.soft,
   },
   infoIcon: {
     alignItems: "center",
-    width: 34,
-    height: 34,
+    width: 30,
+    height: 30,
     justifyContent: "center",
     borderRadius: radius.pill,
     borderColor: colors.accent,
     borderWidth: 1,
+    zIndex: 2,
   },
   infoText: {
     flex: 1,
     color: colors.ink,
+    zIndex: 2,
     ...typography.bodyBold,
+  },
+  skyline: {
+    position: "absolute",
+    right: 18,
+    bottom: 7,
+    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: 3,
+    opacity: 0.32,
+  },
+  skylineBuilding: {
+    width: 7,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+    backgroundColor: colors.accentLight,
+  },
+  skylineLow: {
+    height: 13,
+  },
+  skylineMid: {
+    height: 18,
+  },
+  skylineTall: {
+    height: 26,
+  },
+  skylineMoon: {
+    position: "absolute",
+    right: -14,
+    top: -13,
+    color: colors.accent,
+    fontFamily: fontFamilies.display,
+    fontSize: 24,
+    lineHeight: 26,
   },
   reminderCard: {
     flexDirection: "row",
@@ -419,14 +471,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: spacing.lg,
     borderRadius: radius.lg,
-    backgroundColor: colors.card,
-    borderColor: colors.borderStrong,
-    borderWidth: 1,
+    backgroundColor: "#fff5df",
+    borderColor: colors.accentMid,
+    borderWidth: 1.5,
     ...shadows.soft,
   },
   reminderCardStrong: {
-    backgroundColor: colors.warningSoft,
-    borderColor: colors.borderStrong,
+    backgroundColor: "#fff1cf",
+    borderColor: colors.accent,
   },
   reminderCardFinal: {
     backgroundColor: colors.destructiveSoft,
@@ -538,12 +590,53 @@ const styles = StyleSheet.create({
   },
   reminderWatermark: {
     position: "absolute",
-    right: 18,
-    bottom: 10,
-    color: "rgba(201, 130, 18, 0.12)",
-    fontFamily: fontFamilies.display,
-    fontSize: 34,
-    lineHeight: 40,
+    right: 22,
+    bottom: 14,
+    width: 76,
+    height: 62,
+    opacity: 0.13,
+  },
+  watermarkMugBody: {
+    position: "absolute",
+    left: 3,
+    bottom: 0,
+    width: 48,
+    height: 54,
+    borderColor: colors.accent,
+    borderWidth: 3,
+    borderRadius: 8,
+    borderBottomLeftRadius: 13,
+    borderBottomRightRadius: 13,
+  },
+  watermarkMugShine: {
+    position: "absolute",
+    top: 11,
+    left: 12,
+    width: 3,
+    height: 28,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+  },
+  watermarkMugFoam: {
+    position: "absolute",
+    top: -9,
+    left: 4,
+    width: 38,
+    height: 15,
+    borderRadius: radius.pill,
+    borderColor: colors.accent,
+    borderWidth: 3,
+    backgroundColor: colors.card,
+  },
+  watermarkMugHandle: {
+    position: "absolute",
+    right: 0,
+    bottom: 15,
+    width: 29,
+    height: 31,
+    borderColor: colors.accent,
+    borderWidth: 3,
+    borderRadius: radius.pill,
   },
   sectionHeader: {
     gap: spacing.xs,
