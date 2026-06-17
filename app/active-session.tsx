@@ -378,8 +378,8 @@ export default function ActiveSessionScreen() {
         ) : null}
 
         <View style={styles.secondaryActions}>
-          <Pressable onPress={handleEndSession} style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>End session</Text>
+          <Pressable onPress={handleEndSession} style={styles.endSessionButton}>
+            <Text style={styles.endSessionButtonText}>End session</Text>
           </Pressable>
         </View>
 
@@ -1147,6 +1147,20 @@ const styles = StyleSheet.create({
     color: colors.wineDeep,
     fontSize: 16,
     fontWeight: "700",
+  },
+  endSessionButton: {
+    alignItems: "center",
+    borderRadius: radius.md,
+    backgroundColor: "#f9e9e5",
+    borderColor: "#d9a29b",
+    borderWidth: 1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+  },
+  endSessionButtonText: {
+    color: "#7b2732",
+    fontSize: 16,
+    fontWeight: "900",
   },
   linkButton: {
     overflow: "hidden",
