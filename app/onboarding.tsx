@@ -44,7 +44,7 @@ export default function OnboardingScreen() {
           <Text style={styles.kicker}>OMD</Text>
           <Text style={styles.tagline}>Make a sober plan. Stick to it.</Text>
           <Text style={styles.intro}>
-            A practical guardrail for pacing, spending, and getting home with fewer regrets.
+            A practical guardrail for pacing, spending, and stopping where you planned.
           </Text>
         </View>
 
