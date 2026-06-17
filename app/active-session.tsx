@@ -596,6 +596,7 @@ function QuickStat({
           accessibilityLabel={actionAccessibilityLabel}
           accessibilityRole="button"
           disabled={isActionDisabled}
+          hitSlop={8}
           onPress={onActionPress}
           style={[styles.quickStatAction, isActionDisabled ? styles.quickStatActionDisabled : null]}
         >
@@ -1051,12 +1052,12 @@ const styles = StyleSheet.create({
   quickStatAction: {
     alignItems: "center",
     borderRadius: radius.md,
-    backgroundColor: colors.card,
-    borderColor: colors.borderStrong,
+    backgroundColor: colors.warningSoft,
+    borderColor: colors.accentMid,
     borderWidth: 1,
-    height: 38,
+    height: 34,
     justifyContent: "center",
-    width: 38,
+    width: 34,
     ...shadows.soft,
   },
   quickStatActionDisabled: {

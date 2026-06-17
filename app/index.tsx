@@ -64,7 +64,14 @@ export default function HomeScreen() {
           <View style={styles.topBar}>
             <View style={styles.brandBlock}>
               <Text style={styles.kicker}>OMD</Text>
-              <Text style={styles.title}>One More Drink</Text>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.82}
+                style={styles.title}
+              >
+                {"One More Drink"}
+              </Text>
               <Text style={styles.subtitle}>Make a sober plan. Stick to it.</Text>
             </View>
             <Pressable
@@ -293,6 +300,8 @@ const styles = StyleSheet.create({
   title: {
     color: colors.card,
     ...typography.heroTitle,
+    fontSize: 35,
+    lineHeight: 40,
   },
   subtitle: {
     color: colors.cardMuted,
