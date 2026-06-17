@@ -120,6 +120,10 @@ export default function ActiveSessionScreen() {
         waterBanner,
       })
     : null;
+  const defaultPacingGuidance =
+    session && !primaryGuidance && !drinkWarning && !spendingWarning
+      ? getDefaultPacingGuidance()
+      : null;
 
   const resetSpendingForm = () => {
     setSpendingAmount("");
@@ -352,6 +356,14 @@ export default function ActiveSessionScreen() {
             level={primaryGuidance.level}
             onDismiss={primaryGuidance.onDismiss}
             title={primaryGuidance.title}
+          />
+        ) : null}
+
+        {defaultPacingGuidance ? (
+          <GuidanceNotice
+            body={defaultPacingGuidance.body}
+            level={defaultPacingGuidance.level}
+            title={defaultPacingGuidance.title}
           />
         ) : null}
 
@@ -800,6 +812,14 @@ function getPrimaryGuidance({
   }
 
   return null;
+}
+
+function getDefaultPacingGuidance(): GuidanceNoticeProps {
+  return {
+    body: "If your drink is ahead of the visual, slow the pace.",
+    level: "standard",
+    title: "Use the glass as your guide",
+  };
 }
 
 function getDrinkWarning(session: DrinkingSession) {
