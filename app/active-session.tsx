@@ -18,6 +18,7 @@ import {
   InfoStrip,
   PrimaryButton,
   ReminderCard,
+  ReminderIconName,
   StatCard,
 } from "../components/design-system";
 import { DrinkingSession, SpendingCategory, useSession } from "../context/session";
@@ -335,7 +336,8 @@ export default function ActiveSessionScreen() {
         <View style={styles.quickStats}>
           <QuickStat
             actionAccessibilityLabel="Undo last drink"
-            actionIcon="↶"
+            actionIcon={<UndoIcon />}
+            icon={<GlassIcon />}
             isActionDisabled={session.drinkCount === 0}
             label="Drinks left"
             onActionPress={confirmUndoLastDrink}
@@ -343,7 +345,8 @@ export default function ActiveSessionScreen() {
           />
           <QuickStat
             actionAccessibilityLabel="Log spending"
-            actionIcon="+"
+            actionIcon={<PlusIcon />}
+            icon={<CoinsIcon />}
             label={remainingBudget !== null ? "Spending left" : "Spent"}
             onActionPress={() => setIsSpendingModalVisible(true)}
             value={formatCurrency(remainingBudget ?? totalSpent, settings.currency)}
@@ -351,12 +354,13 @@ export default function ActiveSessionScreen() {
         </View>
 
         {completionStripText ? (
-          <InfoStrip icon={<Text style={styles.infoIconText}>i</Text>}>{completionStripText}</InfoStrip>
+          <InfoStrip icon={<ClockIcon />}>{completionStripText}</InfoStrip>
         ) : null}
 
         {primaryGuidance ? (
           <GuidanceNotice
             body={primaryGuidance.body}
+            icon={primaryGuidance.icon}
             level={primaryGuidance.level}
             onDismiss={primaryGuidance.onDismiss}
             title={primaryGuidance.title}
@@ -366,6 +370,7 @@ export default function ActiveSessionScreen() {
         {defaultPacingGuidance ? (
           <GuidanceNotice
             body={defaultPacingGuidance.body}
+            icon={defaultPacingGuidance.icon}
             level={defaultPacingGuidance.level}
             title={defaultPacingGuidance.title}
           />
@@ -380,6 +385,7 @@ export default function ActiveSessionScreen() {
         {drinkWarning && !primaryGuidance ? (
           <WarningNotice
             body={drinkWarning.body}
+            icon={drinkWarning.icon}
             level={drinkWarning.level}
             title={drinkWarning.title}
           />
@@ -388,6 +394,7 @@ export default function ActiveSessionScreen() {
         {spendingWarning ? (
           <WarningNotice
             body={spendingWarning.body}
+            icon={spendingWarning.icon}
             level={spendingWarning.level}
             title={spendingWarning.title}
           />
@@ -561,7 +568,8 @@ export default function ActiveSessionScreen() {
 
 type QuickStatProps = {
   actionAccessibilityLabel: string;
-  actionIcon: string;
+  actionIcon: React.ReactNode;
+  icon: React.ReactNode;
   isActionDisabled?: boolean;
   label: string;
   onActionPress: () => void;
@@ -571,16 +579,15 @@ type QuickStatProps = {
 function QuickStat({
   actionAccessibilityLabel,
   actionIcon,
+  icon,
   isActionDisabled = false,
   label,
   onActionPress,
   value,
 }: QuickStatProps) {
-  const iconLabel = label === "Drinks left" ? "D" : "$";
-
   return (
     <StatCard
-      icon={<Text style={styles.statIconText}>{iconLabel}</Text>}
+      icon={icon}
       label={label}
       style={label === "Drinks left" ? styles.drinksStatCard : styles.spendingStatCard}
       value={value}
@@ -592,17 +599,52 @@ function QuickStat({
           onPress={onActionPress}
           style={[styles.quickStatAction, isActionDisabled ? styles.quickStatActionDisabled : null]}
         >
-          <Text
-            style={[
-              styles.quickStatActionText,
-              isActionDisabled ? styles.quickStatActionTextDisabled : null,
-            ]}
-          >
-            {actionIcon}
-          </Text>
+          {actionIcon}
         </Pressable>
       }
     />
+  );
+}
+
+function GlassIcon() {
+  return (
+    <View style={styles.glassIcon}>
+      <View style={styles.glassFill} />
+      <View style={styles.glassHighlight} />
+    </View>
+  );
+}
+
+function CoinsIcon() {
+  return (
+    <View style={styles.coinsIcon}>
+      <View style={[styles.coinStack, styles.coinStackBack]}>
+        <View style={styles.coinTop} />
+        <View style={styles.coinBody} />
+      </View>
+      <View style={[styles.coinStack, styles.coinStackFront]}>
+        <View style={styles.coinTop} />
+        <View style={styles.coinBody} />
+      </View>
+      <View style={styles.coinLoose} />
+    </View>
+  );
+}
+
+function UndoIcon() {
+  return <Text style={styles.actionGlyph}>↶</Text>;
+}
+
+function PlusIcon() {
+  return <Text style={styles.plusGlyph}>+</Text>;
+}
+
+function ClockIcon() {
+  return (
+    <View style={styles.clockIcon}>
+      <View style={styles.clockHourHand} />
+      <View style={styles.clockMinuteHand} />
+    </View>
   );
 }
 
@@ -641,20 +683,23 @@ function CollapsibleSection({ children, isExpanded, onToggle, title }: Collapsib
 
 type WarningNoticeProps = {
   body: string;
+  icon?: ReminderIconName;
   level: "standard" | "strong" | "final";
   title: string;
 };
 
-function WarningNotice({ body, level, title }: WarningNoticeProps) {
-  return <ReminderCard body={body} level={level} title={title} />;
+function WarningNotice({ body, icon, level, title }: WarningNoticeProps) {
+  return <ReminderCard body={body} icon={icon} level={level} title={title} />;
 }
 
 type GuidanceNoticeProps = WarningNoticeProps & {
   onDismiss?: () => void;
 };
 
-function GuidanceNotice({ body, level, onDismiss, title }: GuidanceNoticeProps) {
-  return <ReminderCard body={body} level={level} onDismiss={onDismiss} title={title} />;
+function GuidanceNotice({ body, icon, level, onDismiss, title }: GuidanceNoticeProps) {
+  return (
+    <ReminderCard body={body} icon={icon} level={level} onDismiss={onDismiss} title={title} />
+  );
 }
 
 function getRemainingSeconds(session: DrinkingSession | null, now: number) {
@@ -785,6 +830,7 @@ function getPrimaryGuidance({
     return {
       body: "Let's call it a night. There's always a next time.",
       level: "final",
+      icon: "alert",
       title: "Closing time",
     };
   }
@@ -793,6 +839,7 @@ function getPrimaryGuidance({
     return {
       body: "You stuck to the plan. Now bring it home.",
       level: "final",
+      icon: "alert",
       title: "Last call",
     };
   }
@@ -801,6 +848,7 @@ function getPrimaryGuidance({
     return {
       body: "Eat something before the night gets away from you.",
       level: "standard",
+      icon: "food",
       onDismiss: onDismissFood,
       title: "Food check",
     };
@@ -810,6 +858,7 @@ function getPrimaryGuidance({
     return {
       body: "Water check: have some water and watch your pace.",
       level: "standard",
+      icon: "water",
       onDismiss: onDismissWater,
       title: "Water check",
     };
@@ -821,6 +870,7 @@ function getPrimaryGuidance({
 function getDefaultPacingGuidance(): GuidanceNoticeProps {
   return {
     body: "If your drink is ahead of the visual, slow the pace.",
+    icon: "info",
     level: "standard",
     title: "Use the glass as your guide",
   };
@@ -836,6 +886,7 @@ function getDrinkWarning(session: DrinkingSession) {
   if (ratio >= 0.75) {
     return {
       level: "strong" as const,
+      icon: "star" as const,
       title: "Close to your planned maximum",
       body: "You are past three quarters of the plan. Slow down and give yourself more time before deciding what comes next.",
     };
@@ -844,6 +895,7 @@ function getDrinkWarning(session: DrinkingSession) {
   if (ratio >= 0.5) {
     return {
       level: "standard" as const,
+      icon: "info" as const,
       title: "Halfway point reached",
       body: "You are at least halfway through the drinks you planned. Keep the rest of the night steady.",
     };
@@ -862,6 +914,7 @@ function getSpendingWarning(session: DrinkingSession, totalSpent: number) {
   if (ratio >= 1) {
     return {
       level: "final" as const,
+      icon: "alert" as const,
       title: "Spending cap reached",
       body: "You've reached the spending cap you set while sober. Protect the plan.",
     };
@@ -870,6 +923,7 @@ function getSpendingWarning(session: DrinkingSession, totalSpent: number) {
   if (ratio >= 0.75) {
     return {
       level: "strong" as const,
+      icon: "star" as const,
       title: "Close to spending cap",
       body: "You're close to your spending cap. This is a good time to slow spending down.",
     };
@@ -878,6 +932,7 @@ function getSpendingWarning(session: DrinkingSession, totalSpent: number) {
   if (ratio >= 0.5) {
     return {
       level: "standard" as const,
+      icon: "info" as const,
       title: "Half of spending plan used",
       body: "You've used half of your planned spending. Keep an eye on the pace.",
     };
@@ -993,91 +1048,129 @@ const styles = StyleSheet.create({
   spendingStatCard: {
     flex: 1.18,
   },
-  quickStat: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
-    borderWidth: 1,
-  },
-  quickStatHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-    justifyContent: "space-between",
-  },
-  quickStatTextBlock: {
-    flex: 1,
-    gap: 4,
-    minWidth: 0,
-  },
-  quickStatValue: {
-    color: "#1f2a2e",
-    fontFamily: fontFamilies.cardTitle,
-    fontSize: 22,
-    lineHeight: 28,
-  },
-  quickStatLabel: {
-    color: "#52605f",
-    fontFamily: fontFamilies.bodyBold,
-    fontSize: 13,
-    lineHeight: 18,
-  },
   quickStatAction: {
     alignItems: "center",
-    borderRadius: radius.sm,
-    backgroundColor: colors.cardMuted,
-    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
-    height: 38,
+    height: 44,
     justifyContent: "center",
-    width: 38,
+    width: 44,
+    ...shadows.soft,
   },
   quickStatActionDisabled: {
     opacity: 0.45,
   },
-  quickStatActionText: {
+  glassIcon: {
+    width: 22,
+    height: 31,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+    borderColor: colors.accentLight,
+    borderWidth: 2,
+    borderTopWidth: 3,
+    borderRadius: 5,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  glassFill: {
+    height: 17,
+    backgroundColor: colors.accentLight,
+  },
+  glassHighlight: {
+    position: "absolute",
+    top: 6,
+    left: 5,
+    width: 3,
+    height: 18,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255, 248, 235, 0.56)",
+  },
+  coinsIcon: {
+    width: 36,
+    height: 32,
+  },
+  coinStack: {
+    position: "absolute",
+    alignItems: "center",
+  },
+  coinStackBack: {
+    top: 2,
+    right: 2,
+  },
+  coinStackFront: {
+    left: 3,
+    bottom: 1,
+  },
+  coinTop: {
+    width: 19,
+    height: 8,
+    borderRadius: radius.pill,
+    borderColor: colors.accentLight,
+    borderWidth: 2,
+    backgroundColor: colors.wine,
+  },
+  coinBody: {
+    width: 19,
+    height: 15,
+    marginTop: -4,
+    borderLeftColor: colors.accentLight,
+    borderLeftWidth: 2,
+    borderRightColor: colors.accentLight,
+    borderRightWidth: 2,
+    borderBottomColor: colors.accentLight,
+    borderBottomWidth: 2,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  coinLoose: {
+    position: "absolute",
+    right: 1,
+    bottom: 2,
+    width: 18,
+    height: 9,
+    borderRadius: radius.pill,
+    borderColor: colors.accentLight,
+    borderWidth: 2,
+  },
+  actionGlyph: {
     color: colors.accentDark,
     fontFamily: fontFamilies.button,
-    fontSize: 19,
-    lineHeight: 22,
+    fontSize: 23,
+    lineHeight: 26,
   },
-  quickStatActionTextDisabled: {
-    color: colors.mutedLight,
-  },
-  statIconText: {
-    color: colors.accentLight,
-    fontFamily: fontFamilies.button,
-    fontSize: 21,
-    lineHeight: 25,
-  },
-  infoIconText: {
+  plusGlyph: {
     color: colors.accentDark,
-    fontFamily: fontFamilies.button,
-    fontSize: 18,
-    lineHeight: 22,
-  },
-  estimateCard: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
-    borderWidth: 1,
-  },
-  estimateText: {
-    color: "#52605f",
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: "center",
+    fontSize: 30,
+    lineHeight: 32,
   },
-  dismissText: {
-    color: "#2f6f62",
-    fontFamily: fontFamilies.bodyBold,
-    fontSize: 14,
-    lineHeight: 20,
+  clockIcon: {
+    width: 25,
+    height: 25,
+    borderRadius: radius.pill,
+    borderColor: colors.accent,
+    borderWidth: 2,
+  },
+  clockHourHand: {
+    position: "absolute",
+    top: 6,
+    left: 11,
+    width: 2,
+    height: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+  },
+  clockMinuteHand: {
+    position: "absolute",
+    top: 12,
+    left: 11,
+    width: 8,
+    height: 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accent,
+    transform: [{ rotate: "22deg" }],
   },
   title: {
     color: colors.card,
@@ -1105,18 +1198,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
-  notice: {
-    gap: 6,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fff7df",
-    borderColor: "#ead48b",
-    borderWidth: 1,
-  },
-  noticeFinal: {
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
-  },
   storageNotice: {
     gap: spacing.sm,
     padding: spacing.lg,
@@ -1124,19 +1205,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.destructiveSoft,
     borderColor: colors.destructive,
     borderWidth: 1,
-  },
-  noticeTitle: {
-    flex: 1,
-    color: "#1f2a2e",
-    fontFamily: fontFamilies.bodyBold,
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  noticeHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "space-between",
   },
   noticeBody: {
     color: "#52605f",

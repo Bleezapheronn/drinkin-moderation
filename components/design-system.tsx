@@ -140,14 +140,24 @@ export function InfoStrip({ children, icon, style }: InfoStripProps) {
 
 type ReminderCardProps = {
   body: string;
+  icon?: ReminderIconName;
   level?: "standard" | "strong" | "final";
   onDismiss?: () => void;
   title: string;
 };
 
-export function ReminderCard({ body, level = "standard", onDismiss, title }: ReminderCardProps) {
+export type ReminderIconName = "alert" | "food" | "info" | "star" | "water";
+
+export function ReminderCard({
+  body,
+  icon,
+  level = "standard",
+  onDismiss,
+  title,
+}: ReminderCardProps) {
   const isFinal = level === "final";
   const isStrong = level === "strong";
+  const reminderIcon = icon ?? (isFinal ? "alert" : isStrong ? "star" : "info");
 
   return (
     <View
@@ -164,7 +174,7 @@ export function ReminderCard({ body, level = "standard", onDismiss, title }: Rem
           isFinal ? styles.reminderIconFinal : null,
         ]}
       >
-        <Text style={styles.reminderIconText}>{isFinal ? "!" : isStrong ? "*" : "i"}</Text>
+        <ReminderGlyph icon={reminderIcon} />
       </View>
       <View style={styles.reminderCopy}>
         <View style={styles.reminderHeader}>
@@ -180,6 +190,34 @@ export function ReminderCard({ body, level = "standard", onDismiss, title }: Rem
       <Text style={styles.reminderWatermark}>OMD</Text>
     </View>
   );
+}
+
+function ReminderGlyph({ icon }: { icon: ReminderIconName }) {
+  if (icon === "water") {
+    return (
+      <View style={styles.waterGlyph}>
+        <View style={styles.waterGlyphHighlight} />
+      </View>
+    );
+  }
+
+  if (icon === "food") {
+    return (
+      <View style={styles.utensilsGlyph}>
+        <View style={styles.forkHandle} />
+        <View style={styles.forkTines}>
+          <View style={styles.forkTine} />
+          <View style={styles.forkTine} />
+          <View style={styles.forkTine} />
+        </View>
+        <View style={styles.knifeGlyph} />
+      </View>
+    );
+  }
+
+  const iconCopy = icon === "alert" ? "!" : icon === "star" ? "☆" : "i";
+
+  return <Text style={styles.reminderIconText}>{iconCopy}</Text>;
 }
 
 type SectionHeaderProps = {
@@ -283,13 +321,13 @@ const styles = StyleSheet.create({
   },
   statIcon: {
     alignItems: "center",
-    width: 36,
-    height: 36,
+    width: 50,
+    height: 50,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
-    borderColor: colors.accent,
-    borderWidth: 1,
+    borderColor: colors.accentMid,
+    borderWidth: 1.5,
   },
   statText: {
     flex: 1,
@@ -396,26 +434,81 @@ const styles = StyleSheet.create({
   },
   reminderIcon: {
     alignItems: "center",
-    width: 54,
-    height: 54,
+    width: 58,
+    height: 58,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
-    borderColor: colors.accent,
-    borderWidth: 2,
+    borderColor: colors.accentMid,
+    borderWidth: 1.5,
   },
   reminderIconStrong: {
     backgroundColor: colors.wine,
   },
   reminderIconFinal: {
-    backgroundColor: colors.destructive,
-    borderColor: colors.wineDeep,
+    backgroundColor: colors.wine,
+    borderColor: colors.accentMid,
   },
   reminderIconText: {
     color: colors.accentLight,
     fontFamily: fontFamilies.button,
-    fontSize: 30,
-    lineHeight: 34,
+    fontSize: 34,
+    lineHeight: 38,
+  },
+  waterGlyph: {
+    width: 23,
+    height: 29,
+    borderRadius: 14,
+    borderTopLeftRadius: 18,
+    backgroundColor: colors.accentLight,
+    transform: [{ rotate: "45deg" }],
+  },
+  waterGlyphHighlight: {
+    position: "absolute",
+    top: 7,
+    left: 6,
+    width: 5,
+    height: 10,
+    borderRadius: radius.pill,
+    backgroundColor: "rgba(255, 248, 235, 0.46)",
+  },
+  utensilsGlyph: {
+    width: 34,
+    height: 34,
+  },
+  forkHandle: {
+    position: "absolute",
+    left: 8,
+    bottom: 3,
+    width: 4,
+    height: 23,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentLight,
+  },
+  forkTines: {
+    position: "absolute",
+    top: 3,
+    left: 4,
+    flexDirection: "row",
+    gap: 2,
+  },
+  forkTine: {
+    width: 3,
+    height: 10,
+    borderRadius: radius.pill,
+    backgroundColor: colors.accentLight,
+  },
+  knifeGlyph: {
+    position: "absolute",
+    right: 6,
+    top: 3,
+    width: 8,
+    height: 29,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 3,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 8,
+    backgroundColor: colors.accentLight,
   },
   reminderCopy: {
     flex: 1,
