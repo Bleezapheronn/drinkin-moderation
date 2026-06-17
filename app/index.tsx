@@ -70,6 +70,7 @@ export default function HomeScreen() {
             <Pressable
               accessibilityLabel="Settings"
               accessibilityRole="button"
+              hitSlop={8}
               onPress={() => router.push("/settings" as Href)}
               style={styles.settingsButton}
             >
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: spacing.xxl,
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxxl,
+    paddingTop: spacing.xxxl + spacing.lg,
     paddingBottom: spacing.xxxl,
   },
   topBar: {
@@ -301,20 +302,15 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     alignItems: "center",
-    borderRadius: radius.pill,
-    backgroundColor: colors.card,
-    borderColor: colors.accent,
-    borderWidth: 1,
-    height: 44,
+    height: 48,
     justifyContent: "center",
-    width: 44,
-    ...shadows.soft,
+    width: 48,
   },
   settingsButtonText: {
-    color: colors.wineDeep,
-    fontSize: 20,
+    color: colors.accentLight,
+    fontSize: 24,
     fontWeight: "900",
-    lineHeight: 22,
+    lineHeight: 28,
   },
   notice: {
     padding: spacing.lg,
