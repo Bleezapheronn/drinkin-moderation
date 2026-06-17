@@ -14,7 +14,7 @@ import {
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { getPacingSummary } from "../utils/pacing";
 import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
 import {
@@ -177,7 +177,10 @@ export default function NewSessionScreen() {
           contentStyle: { backgroundColor: colors.wine },
           headerStyle: { backgroundColor: colors.wine },
           headerTintColor: colors.card,
-          headerTitleStyle: { color: colors.card, fontWeight: "900" },
+          headerTitleStyle: {
+            color: colors.card,
+            fontFamily: fontFamilies.cardTitle,
+          },
           title: "New Session",
         }}
       />
@@ -503,9 +506,10 @@ const styles = StyleSheet.create({
   presetName: {
     flex: 1,
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 17,
-    fontWeight: "900",
     lineHeight: 23,
+    minWidth: 0,
   },
   presetNameSelected: {
     color: colors.card,
@@ -515,15 +519,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.accent,
     color: colors.white,
+    fontFamily: fontFamilies.button,
     fontSize: 12,
-    fontWeight: "900",
+    lineHeight: 16,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
   },
   presetDetail: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
     lineHeight: 20,
   },
   presetDetailSelected: {
@@ -541,6 +546,7 @@ const styles = StyleSheet.create({
   },
   guidanceText: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -562,8 +568,9 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 15,
-    fontWeight: "800",
+    lineHeight: 21,
   },
   input: {
     minHeight: 52,
@@ -574,13 +581,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     color: colors.ink,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 18,
+    lineHeight: 24,
   },
   inputError: {
     borderColor: colors.destructive,
   },
   error: {
     color: colors.destructive,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -608,8 +618,9 @@ const styles = StyleSheet.create({
   },
   optionButtonText: {
     color: colors.ink,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   optionButtonTextSelected: {
     color: colors.accentLight,
@@ -623,6 +634,7 @@ const styles = StyleSheet.create({
   },
   warningText: {
     color: colors.ink,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -640,8 +652,8 @@ const styles = StyleSheet.create({
   },
   estimateText: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.button,
     fontSize: 14,
-    fontWeight: "900",
     lineHeight: 20,
   },
 });

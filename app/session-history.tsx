@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { AppScreen } from "../components/design-system";
 import { DrinkingSession, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import {
   getSessionDateRange,
   getSessionSummaryLine,
@@ -84,7 +84,7 @@ function BrandedStack({ title }: BrandedStackProps) {
         contentStyle: { backgroundColor: colors.wine },
         headerStyle: { backgroundColor: colors.wine },
         headerTintColor: colors.card,
-        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        headerTitleStyle: { color: colors.card, fontFamily: fontFamilies.cardTitle },
         title,
       }}
     />
@@ -166,17 +166,19 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 18,
-    fontWeight: "900",
+    lineHeight: 24,
   },
   cardMeta: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 15,
-    fontWeight: "700",
     lineHeight: 21,
   },
   cardText: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -211,6 +213,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     color: colors.ink,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },

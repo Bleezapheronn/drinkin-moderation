@@ -22,7 +22,7 @@ import {
 } from "../components/design-system";
 import { DrinkingSession, SpendingCategory, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getIntervalForNextDrink, getPacingSummary } from "../utils/pacing";
 import { formatTime } from "../utils/session-format";
@@ -293,7 +293,11 @@ export default function ActiveSessionScreen() {
           contentStyle: { backgroundColor: colors.wine },
           headerStyle: { backgroundColor: colors.wine },
           headerTintColor: colors.card,
-          headerTitleStyle: { color: colors.card, fontSize: 28, fontWeight: "900" },
+          headerTitleStyle: {
+            color: colors.card,
+            fontFamily: fontFamilies.cardTitle,
+            fontSize: 28,
+          },
           title: "Active Session",
         }}
       />
@@ -929,8 +933,8 @@ const styles = StyleSheet.create({
   },
   flourish: {
     color: colors.accent,
+    fontFamily: fontFamilies.display,
     fontSize: 30,
-    fontWeight: "900",
     lineHeight: 34,
   },
   presetName: {
@@ -947,14 +951,15 @@ const styles = StyleSheet.create({
   },
   drinkType: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 21,
-    fontWeight: "900",
+    lineHeight: 27,
     textAlign: "center",
   },
   drinkTypeDot: {
     color: colors.accent,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 22,
-    fontWeight: "900",
     lineHeight: 26,
   },
   timerBlock: {
@@ -973,8 +978,8 @@ const styles = StyleSheet.create({
   },
   timerSubtext: {
     color: colors.ink,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 18,
-    fontWeight: "700",
     lineHeight: 25,
     textAlign: "center",
   },
@@ -1009,13 +1014,15 @@ const styles = StyleSheet.create({
   },
   quickStatValue: {
     color: "#1f2a2e",
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 22,
-    fontWeight: "800",
+    lineHeight: 28,
   },
   quickStatLabel: {
     color: "#52605f",
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 13,
-    fontWeight: "700",
+    lineHeight: 18,
   },
   quickStatAction: {
     alignItems: "center",
@@ -1032,8 +1039,8 @@ const styles = StyleSheet.create({
   },
   quickStatActionText: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.button,
     fontSize: 19,
-    fontWeight: "900",
     lineHeight: 22,
   },
   quickStatActionTextDisabled: {
@@ -1041,13 +1048,15 @@ const styles = StyleSheet.create({
   },
   statIconText: {
     color: colors.accentLight,
+    fontFamily: fontFamilies.button,
     fontSize: 21,
-    fontWeight: "900",
+    lineHeight: 25,
   },
   infoIconText: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.button,
     fontSize: 18,
-    fontWeight: "900",
+    lineHeight: 22,
   },
   estimateCard: {
     paddingHorizontal: 14,
@@ -1059,15 +1068,16 @@ const styles = StyleSheet.create({
   },
   estimateText: {
     color: "#52605f",
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 15,
-    fontWeight: "700",
     lineHeight: 21,
     textAlign: "center",
   },
   dismissText: {
     color: "#2f6f62",
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   title: {
     color: colors.card,
@@ -1085,13 +1095,14 @@ const styles = StyleSheet.create({
   },
   metricLabel: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 14,
-    fontWeight: "700",
+    lineHeight: 20,
   },
   metricValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
-    fontWeight: "800",
     lineHeight: 22,
   },
   notice: {
@@ -1117,8 +1128,9 @@ const styles = StyleSheet.create({
   noticeTitle: {
     flex: 1,
     color: "#1f2a2e",
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
-    fontWeight: "800",
+    lineHeight: 22,
   },
   noticeHeader: {
     alignItems: "center",
@@ -1128,6 +1140,7 @@ const styles = StyleSheet.create({
   },
   noticeBody: {
     color: "#52605f",
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -1145,8 +1158,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: colors.white,
-    fontSize: 17,
-    fontWeight: "800",
+    ...typography.button,
   },
   disabledButton: {
     backgroundColor: "#d8c8a6",
@@ -1165,8 +1177,9 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
-    fontWeight: "700",
+    lineHeight: 22,
   },
   endSessionButton: {
     alignItems: "center",
@@ -1179,16 +1192,18 @@ const styles = StyleSheet.create({
   },
   endSessionButtonText: {
     color: "#7b2732",
+    fontFamily: fontFamilies.button,
     fontSize: 16,
-    fontWeight: "900",
+    lineHeight: 22,
   },
   linkButton: {
     overflow: "hidden",
     borderRadius: radius.md,
     backgroundColor: colors.accent,
     color: colors.white,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
-    fontWeight: "700",
+    lineHeight: 22,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     textAlign: "center",
@@ -1209,13 +1224,15 @@ const styles = StyleSheet.create({
   },
   collapsibleTitle: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 17,
-    fontWeight: "800",
+    lineHeight: 23,
   },
   collapsibleIndicator: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   collapsibleBody: {
     gap: spacing.md,
@@ -1239,16 +1256,19 @@ const styles = StyleSheet.create({
   },
   entryAmount: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 18,
-    fontWeight: "800",
+    lineHeight: 24,
   },
   entryMeta: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 14,
-    fontWeight: "700",
+    lineHeight: 20,
   },
   entryNote: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1266,8 +1286,9 @@ const styles = StyleSheet.create({
   },
   smallButtonText: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "700",
+    lineHeight: 20,
   },
   modalOverlay: {
     flex: 1,
@@ -1294,8 +1315,9 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 15,
-    fontWeight: "700",
+    lineHeight: 21,
   },
   input: {
     minHeight: 52,
@@ -1306,13 +1328,16 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     color: colors.ink,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 18,
+    lineHeight: 24,
   },
   inputError: {
     borderColor: colors.destructive,
   },
   error: {
     color: colors.destructive,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -1335,8 +1360,9 @@ const styles = StyleSheet.create({
   },
   categoryButtonText: {
     color: colors.ink,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 14,
-    fontWeight: "700",
+    lineHeight: 20,
   },
   categorySelectedText: {
     color: colors.accentDark,

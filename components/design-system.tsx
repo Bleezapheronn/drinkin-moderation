@@ -11,7 +11,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 
 type AppScreenProps = {
   children: ReactNode;
@@ -298,15 +298,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 19,
-    fontWeight: "900",
-    lineHeight: 24,
+    lineHeight: 25,
   },
   statLabel: {
     color: colors.muted,
-    fontSize: 12,
-    fontWeight: "700",
-    lineHeight: 16,
+    ...typography.caption,
   },
   statAction: {
     alignItems: "center",
@@ -375,9 +373,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     color: colors.ink,
-    fontSize: 16,
-    fontWeight: "800",
-    lineHeight: 22,
+    ...typography.bodyBold,
   },
   reminderCard: {
     flexDirection: "row",
@@ -417,8 +413,8 @@ const styles = StyleSheet.create({
   },
   reminderIconText: {
     color: colors.accentLight,
+    fontFamily: fontFamilies.button,
     fontSize: 30,
-    fontWeight: "900",
     lineHeight: 34,
   },
   reminderCopy: {
@@ -443,16 +439,18 @@ const styles = StyleSheet.create({
   },
   dismissText: {
     color: colors.accentDark,
+    fontFamily: fontFamilies.button,
     fontSize: 13,
-    fontWeight: "900",
+    lineHeight: 18,
   },
   reminderWatermark: {
     position: "absolute",
     right: 18,
     bottom: 10,
     color: "rgba(201, 130, 18, 0.12)",
+    fontFamily: fontFamilies.display,
     fontSize: 34,
-    fontWeight: "900",
+    lineHeight: 40,
   },
   sectionHeader: {
     gap: spacing.xs,

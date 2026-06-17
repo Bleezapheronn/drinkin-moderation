@@ -1,10 +1,37 @@
+import {
+  Fraunces_700Bold,
+  Fraunces_800ExtraBold,
+  Fraunces_900Black,
+} from "@expo-google-fonts/fraunces";
+import {
+  NunitoSans_400Regular,
+  NunitoSans_600SemiBold,
+  NunitoSans_800ExtraBold,
+  NunitoSans_900Black,
+} from "@expo-google-fonts/nunito-sans";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
 import { SettingsProvider } from "../context/settings";
 import { SessionProvider } from "../context/session";
+import { colors, fontFamilies } from "../theme";
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    Fraunces_700Bold,
+    Fraunces_800ExtraBold,
+    Fraunces_900Black,
+    NunitoSans_400Regular,
+    NunitoSans_600SemiBold,
+    NunitoSans_800ExtraBold,
+    NunitoSans_900Black,
+  });
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <SettingsProvider>
       <SessionProvider>
@@ -13,7 +40,11 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: "#f7f4ef" },
             headerStyle: { backgroundColor: "#f7f4ef" },
             headerShadowVisible: false,
-            headerTitleStyle: { fontWeight: "700" },
+            headerTitleStyle: {
+              color: colors.wineDeep,
+              fontFamily: fontFamilies.cardTitle,
+              fontSize: 22,
+            },
           }}
         >
           <Stack.Screen name="index" options={{ title: "One More Drink" }} />

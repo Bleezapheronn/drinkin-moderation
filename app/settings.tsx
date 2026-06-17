@@ -13,7 +13,7 @@ import type {
   WaterReminderPreference,
 } from "../context/settings";
 import { useSession } from "../context/session";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { scheduleTestReminderSound } from "../utils/session-notifications";
 
 const presetOptions: { label: string; value: DefaultPresetSetting }[] = [
@@ -329,7 +329,7 @@ function BrandedStack() {
         contentStyle: { backgroundColor: colors.wine },
         headerStyle: { backgroundColor: colors.wine },
         headerTintColor: colors.card,
-        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        headerTitleStyle: { color: colors.card, fontFamily: fontFamilies.cardTitle },
         title: "Settings",
       }}
     />
@@ -520,13 +520,14 @@ const styles = StyleSheet.create({
   },
   label: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   fileSummary: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "900",
     lineHeight: 20,
   },
   optionRow: {
@@ -551,8 +552,9 @@ const styles = StyleSheet.create({
   },
   optionButtonText: {
     color: colors.ink,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   optionButtonTextSelected: {
     color: colors.accentLight,
@@ -569,8 +571,9 @@ const styles = StyleSheet.create({
   toggleLabel: {
     flex: 1,
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
-    fontWeight: "800",
+    lineHeight: 22,
   },
   togglePill: {
     minWidth: 58,
@@ -588,14 +591,16 @@ const styles = StyleSheet.create({
   },
   toggleValue: {
     color: colors.muted,
+    fontFamily: fontFamilies.button,
     fontSize: 14,
-    fontWeight: "900",
+    lineHeight: 20,
   },
   toggleValueOn: {
     color: colors.accentDark,
   },
   note: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -610,8 +615,9 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: colors.destructive,
+    fontFamily: fontFamilies.button,
     fontSize: 16,
-    fontWeight: "900",
+    lineHeight: 22,
   },
   secondaryButton: {
     alignItems: "center",
@@ -624,8 +630,9 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.button,
     fontSize: 16,
-    fontWeight: "900",
+    lineHeight: 22,
   },
   disabledButton: {
     borderColor: colors.border,
@@ -643,8 +650,8 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 17,
-    fontWeight: "900",
     lineHeight: 23,
   },
   notice: {
@@ -656,6 +663,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     color: colors.ink,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },

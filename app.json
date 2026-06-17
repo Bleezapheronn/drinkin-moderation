@@ -38,7 +38,8 @@
             "./assets/sounds/go_home.mp3"
           ]
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

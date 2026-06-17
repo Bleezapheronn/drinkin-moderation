@@ -71,45 +71,93 @@ export const shadows = {
   } satisfies ViewStyle,
 };
 
+export const fontFamilies = {
+  display: "Fraunces_900Black",
+  heading: "Fraunces_800ExtraBold",
+  cardTitle: "Fraunces_700Bold",
+  timer: "Fraunces_900Black",
+  body: "NunitoSans_400Regular",
+  bodyMedium: "NunitoSans_600SemiBold",
+  bodyBold: "NunitoSans_800ExtraBold",
+  button: "NunitoSans_900Black",
+};
+
 export const typography = {
-  screenTitle: {
-    fontSize: 30,
-    fontWeight: "900",
-    lineHeight: 36,
-  } satisfies TextStyle,
-  heroTitle: {
+  display: {
+    fontFamily: fontFamilies.display,
     fontSize: 38,
-    fontWeight: "900",
     lineHeight: 44,
   } satisfies TextStyle,
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "900",
-    lineHeight: 24,
+  heading: {
+    fontFamily: fontFamilies.heading,
+    fontSize: 30,
+    lineHeight: 36,
+  } satisfies TextStyle,
+  cardTitle: {
+    fontFamily: fontFamilies.cardTitle,
+    fontSize: 20,
+    lineHeight: 26,
+  } satisfies TextStyle,
+  timer: {
+    fontFamily: fontFamilies.timer,
+    fontSize: 76,
+    lineHeight: 82,
   } satisfies TextStyle,
   body: {
+    fontFamily: fontFamilies.body,
+    fontSize: 16,
+    lineHeight: 23,
+  } satisfies TextStyle,
+  bodyMedium: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: 16,
+    lineHeight: 23,
+  } satisfies TextStyle,
+  bodyBold: {
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 16,
     lineHeight: 23,
   } satisfies TextStyle,
   caption: {
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 13,
-    fontWeight: "700",
     lineHeight: 18,
   } satisfies TextStyle,
+  button: {
+    fontFamily: fontFamilies.button,
+    fontSize: 17,
+    lineHeight: 22,
+  } satisfies TextStyle,
+  screenTitle: {
+    fontFamily: fontFamilies.heading,
+    fontSize: 30,
+    lineHeight: 36,
+  } satisfies TextStyle,
+  heroTitle: {
+    fontFamily: fontFamilies.display,
+    fontSize: 38,
+    lineHeight: 44,
+  } satisfies TextStyle,
+  sectionTitle: {
+    fontFamily: fontFamilies.cardTitle,
+    fontSize: 18,
+    lineHeight: 24,
+  } satisfies TextStyle,
   numericTimer: {
+    fontFamily: fontFamilies.timer,
     fontSize: 76,
-    fontWeight: "900",
     lineHeight: 82,
   } satisfies TextStyle,
   buttonLabel: {
+    fontFamily: fontFamilies.button,
     fontSize: 17,
-    fontWeight: "900",
     lineHeight: 22,
   } satisfies TextStyle,
 };
 
 export const theme = {
   colors,
+  fontFamilies,
   radius,
   shadows,
   spacing,

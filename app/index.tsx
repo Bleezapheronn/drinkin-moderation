@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { DrinkingSession, SessionPresetName, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getSessionDateRange, getSessionSummaryLine, getSessionTitle } from "../utils/session-format";
 import { getTotalSpent } from "../utils/session-metrics";
@@ -296,8 +296,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: colors.cardMuted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 17,
-    fontWeight: "700",
     lineHeight: 24,
   },
   settingsButton: {
@@ -308,8 +308,8 @@ const styles = StyleSheet.create({
   },
   settingsButtonText: {
     color: colors.accentLight,
+    fontFamily: fontFamilies.button,
     fontSize: 24,
-    fontWeight: "900",
     lineHeight: 28,
   },
   notice: {
@@ -321,6 +321,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     color: colors.ink,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -359,8 +360,9 @@ const styles = StyleSheet.create({
   },
   quickStartText: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 19,
   },
   activeCard: {
     gap: spacing.lg,
@@ -391,8 +393,8 @@ const styles = StyleSheet.create({
   },
   activeMeta: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 15,
-    fontWeight: "700",
     lineHeight: 21,
   },
   activeStats: {
@@ -411,14 +413,14 @@ const styles = StyleSheet.create({
   },
   miniStatValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 20,
-    fontWeight: "900",
     lineHeight: 25,
   },
   miniStatLabel: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 12,
-    fontWeight: "800",
     lineHeight: 16,
   },
   section: {
@@ -436,8 +438,9 @@ const styles = StyleSheet.create({
   },
   inlineLink: {
     color: colors.accentLight,
+    fontFamily: fontFamilies.button,
     fontSize: 15,
-    fontWeight: "900",
+    lineHeight: 20,
   },
   recentCard: {
     flexDirection: "row",
@@ -459,17 +462,19 @@ const styles = StyleSheet.create({
   },
   recentTitle: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 18,
-    fontWeight: "900",
+    lineHeight: 24,
   },
   recentDate: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 15,
-    fontWeight: "700",
     lineHeight: 21,
   },
   recentText: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -483,6 +488,7 @@ const styles = StyleSheet.create({
   },
   privacyNote: {
     color: colors.cardMuted,
+    fontFamily: fontFamilies.body,
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",

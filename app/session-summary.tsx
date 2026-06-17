@@ -5,7 +5,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { SpendingItem, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getPacingSummary } from "../utils/pacing";
 import {
@@ -179,7 +179,7 @@ function BrandedStack() {
         contentStyle: { backgroundColor: colors.wine },
         headerStyle: { backgroundColor: colors.wine },
         headerTintColor: colors.card,
-        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        headerTitleStyle: { color: colors.card, fontFamily: fontFamilies.cardTitle },
         title: "Session Summary",
       }}
     />
@@ -315,14 +315,14 @@ const styles = StyleSheet.create({
   },
   summaryStatValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 20,
-    fontWeight: "900",
     lineHeight: 25,
   },
   summaryStatLabel: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 12,
-    fontWeight: "800",
     lineHeight: 16,
   },
   card: {
@@ -343,6 +343,7 @@ const styles = StyleSheet.create({
   },
   noticeText: {
     color: colors.ink,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },
@@ -358,13 +359,14 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     color: colors.muted,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 14,
-    fontWeight: "800",
+    lineHeight: 20,
   },
   rowValue: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 18,
-    fontWeight: "900",
     lineHeight: 24,
   },
   resultPill: {
@@ -383,8 +385,9 @@ const styles = StyleSheet.create({
     borderColor: colors.borderStrong,
   },
   resultText: {
+    fontFamily: fontFamilies.button,
     fontSize: 15,
-    fontWeight: "900",
+    lineHeight: 21,
   },
   resultTextPositive: {
     color: colors.success,
@@ -405,18 +408,21 @@ const styles = StyleSheet.create({
   },
   spendingAmount: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 18,
-    fontWeight: "900",
+    lineHeight: 24,
   },
   spendingCategory: {
     flexShrink: 1,
     color: colors.muted,
+    fontFamily: fontFamilies.bodyBold,
     fontSize: 15,
-    fontWeight: "800",
+    lineHeight: 21,
     textAlign: "right",
   },
   spendingNote: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 15,
     lineHeight: 21,
   },

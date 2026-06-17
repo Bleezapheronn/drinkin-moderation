@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
 import { useSettings } from "../context/settings";
-import { colors, radius, shadows, spacing, typography } from "../theme";
+import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 
 const onboardingSteps = [
   {
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
   },
   intro: {
     color: colors.cardMuted,
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: 17,
-    fontWeight: "700",
     lineHeight: 24,
   },
   stepCount: {
@@ -158,12 +158,13 @@ const styles = StyleSheet.create({
   },
   disclaimerTitle: {
     color: colors.wineDeep,
+    fontFamily: fontFamilies.cardTitle,
     fontSize: 16,
-    fontWeight: "900",
     lineHeight: 22,
   },
   disclaimerText: {
     color: colors.muted,
+    fontFamily: fontFamilies.body,
     fontSize: 14,
     lineHeight: 20,
   },
