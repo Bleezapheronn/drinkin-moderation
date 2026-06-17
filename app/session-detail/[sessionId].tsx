@@ -1,9 +1,11 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import type { Href } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { AppScreen, PrimaryButton } from "../../components/design-system";
 import { SpendingItem, useSession } from "../../context/session";
 import { useSettings } from "../../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../../theme";
 import { formatCurrency } from "../../utils/currency";
 import { getPacingSummary } from "../../utils/pacing";
 import {
@@ -51,116 +53,148 @@ export default function SessionDetailScreen() {
 
   if (isRestoring) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>Session Detail</Text>
-        <Text style={styles.body}>Checking saved sessions on this device.</Text>
-      </View>
+      <>
+        <BrandedStack title="Session Detail" />
+        <AppScreen>
+          <View style={styles.centeredScreen}>
+            <Text style={styles.title}>Session Detail</Text>
+            <Text style={styles.body}>Checking saved sessions on this device.</Text>
+          </View>
+        </AppScreen>
+      </>
     );
   }
 
   if (!session) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>Session not found</Text>
-        <Text style={styles.body}>
-          This completed session is no longer saved on this device.
-        </Text>
-        <Pressable
-          onPress={() => router.replace("/session-history" as Href)}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryButtonText}>Back to history</Text>
-        </Pressable>
-      </View>
+      <>
+        <BrandedStack title="Session Detail" />
+        <AppScreen>
+          <View style={styles.centeredScreen}>
+            <Text style={styles.title}>Session not found</Text>
+            <Text style={styles.body}>
+              This completed session is no longer saved on this device.
+            </Text>
+            <PrimaryButton onPress={() => router.replace("/session-history" as Href)}>
+              Back to history
+            </PrimaryButton>
+          </View>
+        </AppScreen>
+      </>
     );
   }
 
   const totalSpent = getTotalSpent(session);
   const hasSpendingPlan = session.spendingCap !== null || session.spendingItems.length > 0;
   const activityRange = getDrinkingActivityRange(session);
+  const drinkResult = stayedWithinDrinkPlan(session) ? "Within plan" : "Over plan";
+  const spendingResult = stayedWithinSpendingPlan(session) ? "Within plan" : "Over plan";
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{getSessionTitle(session)}</Text>
-        <Text style={styles.body}>{formatDate(activityRange.startedAt)}</Text>
-      </View>
+    <>
+      <BrandedStack title="Session Detail" />
+      <AppScreen>
+        <ScrollView contentContainerStyle={styles.screen}>
+          <View style={styles.header}>
+            <Text style={styles.kicker}>Completed session</Text>
+            <Text style={styles.title}>{getSessionTitle(session)}</Text>
+            <Text style={styles.body}>{formatDate(activityRange.startedAt)}</Text>
+          </View>
 
-      {storageError ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>{storageError}</Text>
-        </View>
-      ) : null}
+          {storageError ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{storageError}</Text>
+            </View>
+          ) : null}
 
-      <View style={styles.card}>
-        <DetailRow label="Primary drink type" value={session.primaryDrinkType ?? "Not recorded"} />
-        <DetailRow label="Date" value={formatDate(activityRange.startedAt)} />
-        <DetailRow label="Start time" value={formatTime(activityRange.startedAt)} />
-        <DetailRow label="End time" value={formatTime(activityRange.endedAt)} />
-        <DetailRow label="Duration" value={formatSessionDuration(session)} />
-      </View>
+          <View style={styles.card}>
+            <View style={styles.goldRule} />
+            <DetailRow label="Primary drink type" value={session.primaryDrinkType ?? "Not recorded"} />
+            <DetailRow label="Date" value={formatDate(activityRange.startedAt)} />
+            <DetailRow label="Start time" value={formatTime(activityRange.startedAt)} />
+            <DetailRow label="End time" value={formatTime(activityRange.endedAt)} />
+            <DetailRow label="Duration" value={formatSessionDuration(session)} />
+          </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Drink plan</Text>
-        <DetailRow label="Total drinks" value={`${session.drinkCount}`} />
-        <DetailRow label="Maximum drinks" value={`${session.maxDrinks}`} />
-        <DetailRow
-          label="Result"
-          value={stayedWithinDrinkPlan(session) ? "Within plan" : "Over plan"}
-        />
-        <DetailRow label="Pacing used" value={getPacingSummary(session.pacing)} />
-      </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Drink plan</Text>
+            <DetailRow label="Total drinks" value={`${session.drinkCount}`} />
+            <DetailRow label="Maximum drinks" value={`${session.maxDrinks}`} />
+            <ResultRow label="Result" value={drinkResult} isPositive={drinkResult === "Within plan"} />
+            <DetailRow label="Pacing used" value={getPacingSummary(session.pacing)} />
+          </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Spending</Text>
-        <DetailRow label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
-        <DetailRow
-          label="Spending cap"
-          value={
-            session.spendingCap === null
-              ? "Not set"
-              : formatCurrency(session.spendingCap, settings.currency)
-          }
-        />
-        {hasSpendingPlan ? (
-          <DetailRow
-            label="Result"
-            value={stayedWithinSpendingPlan(session) ? "Within plan" : "Over plan"}
-          />
-        ) : null}
-      </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Spending</Text>
+            <DetailRow label="Total spending" value={formatCurrency(totalSpent, settings.currency)} />
+            <DetailRow
+              label="Spending cap"
+              value={
+                session.spendingCap === null
+                  ? "Not set"
+                  : formatCurrency(session.spendingCap, settings.currency)
+              }
+            />
+            {hasSpendingPlan ? (
+              <ResultRow
+                label="Result"
+                value={spendingResult}
+                isPositive={spendingResult === "Within plan"}
+              />
+            ) : null}
+          </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Reminders</Text>
-        <DetailRow
-          label="Food reminder"
-          value={formatReminderState(
-            session.behavioralReminders.foodEnabled,
-            session.behavioralReminders.foodTriggered,
-          )}
-        />
-        <DetailRow
-          label="Go-home reminder"
-          value={formatReminderState(
-            session.behavioralReminders.goHomeEnabled,
-            session.behavioralReminders.goHomeTriggered,
-          )}
-        />
-      </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Reminders</Text>
+            <DetailRow
+              label="Food reminder"
+              value={formatReminderState(
+                session.behavioralReminders.foodEnabled,
+                session.behavioralReminders.foodTriggered,
+              )}
+            />
+            <DetailRow
+              label="Go-home reminder"
+              value={formatReminderState(
+                session.behavioralReminders.goHomeEnabled,
+                session.behavioralReminders.goHomeTriggered,
+              )}
+            />
+          </View>
 
-      {session.spendingItems.length > 0 ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Spending entries</Text>
-          {session.spendingItems.map((item) => (
-            <SpendingEntry key={item.id} currency={settings.currency} item={item} />
-          ))}
-        </View>
-      ) : null}
+          {session.spendingItems.length > 0 ? (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Spending entries</Text>
+              {session.spendingItems.map((item) => (
+                <SpendingEntry key={item.id} currency={settings.currency} item={item} />
+              ))}
+            </View>
+          ) : null}
 
-      <Pressable onPress={confirmDelete} style={styles.deleteButton}>
-        <Text style={styles.deleteButtonText}>Delete session</Text>
-      </Pressable>
-    </ScrollView>
+          <Pressable onPress={confirmDelete} style={styles.deleteButton}>
+            <Text style={styles.deleteButtonText}>Delete session</Text>
+          </Pressable>
+        </ScrollView>
+      </AppScreen>
+    </>
+  );
+}
+
+type BrandedStackProps = {
+  title: string;
+};
+
+function BrandedStack({ title }: BrandedStackProps) {
+  return (
+    <Stack.Screen
+      options={{
+        contentStyle: { backgroundColor: colors.wine },
+        headerStyle: { backgroundColor: colors.wine },
+        headerTintColor: colors.card,
+        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        title,
+      }}
+    />
   );
 }
 
@@ -174,6 +208,23 @@ function DetailRow({ label, value }: DetailRowProps) {
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
       <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+type ResultRowProps = DetailRowProps & {
+  isPositive: boolean;
+};
+
+function ResultRow({ isPositive, label, value }: ResultRowProps) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <View style={[styles.resultPill, isPositive ? styles.resultPillPositive : styles.resultPillWarning]}>
+        <Text style={[styles.resultText, isPositive ? styles.resultTextPositive : styles.resultTextWarning]}>
+          {value}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -206,113 +257,148 @@ function formatReminderState(isEnabled: boolean, isTriggered: boolean) {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    gap: 20,
-    padding: 24,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxxl,
+  },
+  centeredScreen: {
+    flex: 1,
+    justifyContent: "center",
+    gap: spacing.md,
+    padding: spacing.xxl,
   },
   header: {
-    gap: 6,
+    gap: spacing.xs,
+  },
+  kicker: {
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 28,
-    fontWeight: "800",
+    color: colors.card,
+    ...typography.screenTitle,
   },
   body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
+    color: colors.cardMuted,
+    ...typography.body,
   },
   card: {
-    gap: 14,
-    padding: 18,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.md,
+    overflow: "hidden",
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.card,
+  },
+  goldRule: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: colors.accent,
   },
   sectionTitle: {
-    color: "#1f2a2e",
-    fontSize: 20,
-    fontWeight: "800",
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
   },
   row: {
-    gap: 4,
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
   },
   rowLabel: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   rowValue: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
     lineHeight: 24,
   },
+  resultPill: {
+    alignSelf: "flex-start",
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  resultPillPositive: {
+    backgroundColor: colors.successSoft,
+    borderColor: colors.success,
+  },
+  resultPillWarning: {
+    backgroundColor: colors.warningSoft,
+    borderColor: colors.borderStrong,
+  },
+  resultText: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  resultTextPositive: {
+    color: colors.success,
+  },
+  resultTextWarning: {
+    color: colors.warning,
+  },
   spendingEntry: {
-    gap: 6,
-    paddingTop: 12,
-    borderTopColor: "#e5ded3",
+    gap: spacing.xs,
+    paddingTop: spacing.md,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
   },
   spendingEntryHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
+    gap: spacing.md,
   },
   spendingAmount: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   spendingCategory: {
     flexShrink: 1,
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
     textAlign: "right",
   },
   spendingNote: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     lineHeight: 21,
   },
-  primaryButton: {
-    alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#2f6f62",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-  },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
   deleteButton: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#b65353",
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   deleteButtonText: {
-    color: "#9b3f3f",
+    color: colors.destructive,
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   notice: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
   },
   noticeText: {
-    color: "#52605f",
+    color: colors.ink,
     fontSize: 15,
     lineHeight: 21,
   },

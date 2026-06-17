@@ -1,9 +1,11 @@
-import { router } from "expo-router";
+import { Stack, router } from "expo-router";
 import type { Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { AppScreen } from "../components/design-system";
 import { DrinkingSession, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 import {
   getSessionDateRange,
   getSessionSummaryLine,
@@ -16,46 +18,76 @@ export default function SessionHistoryScreen() {
 
   if (isRestoring) {
     return (
-      <View style={styles.screen}>
-        <Text style={styles.title}>Session History</Text>
-        <Text style={styles.body}>Checking saved sessions on this device.</Text>
-      </View>
+      <>
+        <BrandedStack title="Session History" />
+        <AppScreen>
+          <View style={styles.centeredScreen}>
+            <Text style={styles.title}>Session History</Text>
+            <Text style={styles.body}>Checking saved sessions on this device.</Text>
+          </View>
+        </AppScreen>
+      </>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Session History</Text>
-        <Text style={styles.body}>Review completed sessions without changing them.</Text>
-      </View>
+    <>
+      <BrandedStack title="Session History" />
+      <AppScreen>
+        <ScrollView contentContainerStyle={styles.screen}>
+          <View style={styles.header}>
+            <Text style={styles.kicker}>Completed plans</Text>
+            <Text style={styles.title}>Session History</Text>
+            <Text style={styles.body}>Review completed sessions without changing them.</Text>
+          </View>
 
-      {storageError ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>{storageError}</Text>
-        </View>
-      ) : null}
+          {storageError ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{storageError}</Text>
+            </View>
+          ) : null}
 
-      {completedSessions.length > 0 ? (
-        <View style={styles.list}>
-          {completedSessions.map((session, index) => (
-            <HistoryCard
-              key={`${session.startedAt}-${session.endedAt}`}
-              currency={settings.currency}
-              sessionIndex={index}
-              session={session}
-            />
-          ))}
-        </View>
-      ) : (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No completed sessions yet</Text>
-          <Text style={styles.body}>
-            No completed sessions yet. Start a session to build your history.
-          </Text>
-        </View>
-      )}
-    </ScrollView>
+          {completedSessions.length > 0 ? (
+            <View style={styles.list}>
+              {completedSessions.map((session, index) => (
+                <HistoryCard
+                  key={`${session.startedAt}-${session.endedAt}`}
+                  currency={settings.currency}
+                  sessionIndex={index}
+                  session={session}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyCard}>
+              <View style={styles.goldRule} />
+              <Text style={styles.emptyTitle}>No completed sessions yet</Text>
+              <Text style={styles.cardText}>
+                Start and complete a session to build a local history here.
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      </AppScreen>
+    </>
+  );
+}
+
+type BrandedStackProps = {
+  title: string;
+};
+
+function BrandedStack({ title }: BrandedStackProps) {
+  return (
+    <Stack.Screen
+      options={{
+        contentStyle: { backgroundColor: colors.wine },
+        headerStyle: { backgroundColor: colors.wine },
+        headerTintColor: colors.card,
+        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        title,
+      }}
+    />
   );
 }
 
@@ -68,14 +100,15 @@ type HistoryCardProps = {
 function HistoryCard({ currency, session, sessionIndex }: HistoryCardProps) {
   return (
     <Pressable
-      onPress={() =>
-        router.push(`/session-detail/${sessionIndex}` as Href)
-      }
+      onPress={() => router.push(`/session-detail/${sessionIndex}` as Href)}
       style={styles.card}
     >
-      <Text style={styles.cardTitle}>{getSessionTitle(session)}</Text>
-      <Text style={styles.cardMeta}>{getSessionDateRange(session)}</Text>
-      <Text style={styles.cardText}>{getSessionSummaryLine(session, currency)}</Text>
+      <View style={styles.cardAccent} />
+      <View style={styles.cardCopy}>
+        <Text style={styles.cardTitle}>{getSessionTitle(session)}</Text>
+        <Text style={styles.cardMeta}>{getSessionDateRange(session)}</Text>
+        <Text style={styles.cardText}>{getSessionSummaryLine(session, currency)}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -83,72 +116,101 @@ function HistoryCard({ currency, session, sessionIndex }: HistoryCardProps) {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    gap: 20,
-    padding: 24,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxxl,
+  },
+  centeredScreen: {
+    flex: 1,
+    justifyContent: "center",
+    gap: spacing.md,
+    padding: spacing.xxl,
   },
   header: {
-    gap: 8,
+    gap: spacing.xs,
+  },
+  kicker: {
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 28,
-    fontWeight: "800",
+    color: colors.card,
+    ...typography.screenTitle,
   },
   body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
+    color: colors.cardMuted,
+    ...typography.body,
   },
   list: {
-    gap: 12,
+    gap: spacing.md,
   },
   card: {
-    gap: 6,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    flexDirection: "row",
+    overflow: "hidden",
+    borderRadius: radius.lg,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.soft,
+  },
+  cardAccent: {
+    width: 5,
+    backgroundColor: colors.accent,
+  },
+  cardCopy: {
+    flex: 1,
+    gap: spacing.xs,
+    padding: spacing.lg,
   },
   cardTitle: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   cardMeta: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     fontWeight: "700",
     lineHeight: 21,
   },
   cardText: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 15,
     lineHeight: 21,
   },
   emptyCard: {
-    gap: 8,
-    padding: 18,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.sm,
+    overflow: "hidden",
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
+    ...shadows.card,
+  },
+  goldRule: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: colors.accent,
   },
   emptyTitle: {
-    color: "#1f2a2e",
-    fontSize: 18,
-    fontWeight: "800",
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
   },
   notice: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
   },
   noticeText: {
-    color: "#52605f",
+    color: colors.ink,
     fontSize: 15,
     lineHeight: 21,
   },

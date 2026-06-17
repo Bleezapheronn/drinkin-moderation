@@ -1,8 +1,9 @@
 import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
-import { router } from "expo-router";
+import { Stack, router } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { AppScreen } from "../components/design-system";
 import { useSettings } from "../context/settings";
 import type {
   CurrencyCode,
@@ -12,6 +13,7 @@ import type {
   WaterReminderPreference,
 } from "../context/settings";
 import { useSession } from "../context/session";
+import { colors, radius, shadows, spacing, typography } from "../theme";
 import { scheduleTestReminderSound } from "../utils/session-notifications";
 
 const presetOptions: { label: string; value: DefaultPresetSetting }[] = [
@@ -113,179 +115,199 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.body}>Keep the defaults practical and easy to change.</Text>
-      </View>
-
-      {isRestoringSettings ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>Loading saved settings.</Text>
-        </View>
-      ) : null}
-
-      {settingsError ? (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>{settingsError}</Text>
-        </View>
-      ) : null}
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Default preset</Text>
-        <Text style={styles.body}>Choose the preset New Session should start with.</Text>
-        <View style={styles.optionGrid}>
-          {presetOptions.map((option) => (
-            <OptionButton
-              key={option.label}
-              isSelected={settings.defaultPreset === option.value}
-              label={option.label}
-              onPress={() => updateSettings({ defaultPreset: option.value })}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Currency</Text>
-        <View style={styles.optionRow}>
-          {currencyOptions.map((option) => (
-            <OptionButton
-              key={option.value}
-              isSelected={settings.currency === option.value}
-              label={option.label}
-              onPress={() => updateSettings({ currency: option.value })}
-            />
-          ))}
-        </View>
-        <Text style={styles.note}>
-          Changing currency only changes display formatting. It does not convert past amounts.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
-        <ToggleRow
-          isEnabled={settings.nextDrinkPhoneNotifications}
-          label="Next-drink phone notification"
-          onPress={() =>
-            updateSettings({
-              nextDrinkPhoneNotifications: !settings.nextDrinkPhoneNotifications,
-            })
-          }
-        />
-        <ToggleRow
-          isEnabled={settings.goHomePhoneNotifications}
-          label="Go-home phone notification"
-          onPress={() =>
-            updateSettings({
-              goHomePhoneNotifications: !settings.goHomePhoneNotifications,
-            })
-          }
-        />
-        <View style={styles.field}>
-          <Text style={styles.label}>Water reminder</Text>
-          <View style={styles.optionRow}>
-            {waterReminderOptions.map((option) => (
-              <OptionButton
-                key={option.value}
-                isSelected={settings.waterReminder === option.value}
-                label={option.label}
-                onPress={() => updateSettings({ waterReminder: option.value })}
-              />
-            ))}
+    <>
+      <BrandedStack />
+      <AppScreen>
+        <ScrollView contentContainerStyle={styles.screen}>
+          <View style={styles.header}>
+            <Text style={styles.kicker}>Preferences</Text>
+            <Text style={styles.title}>Settings</Text>
+            <Text style={styles.body}>Keep the defaults practical and easy to change.</Text>
           </View>
-        </View>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Reminder sounds</Text>
-        <Text style={styles.body}>
-          Device audio file support is experimental. Some Android notification sounds must be
-          bundled with the app.
-        </Text>
-        <ReminderSoundPicker
-          label="Interval reminder sound"
-          onChooseFile={() => chooseAudioFile("intervalReminderSound")}
-          onSelect={(choice) =>
-            updateSettings({
-              intervalReminderSound: {
-                ...settings.intervalReminderSound,
-                choice,
-              },
-            })
-          }
-          onTest={() => testReminderSound("interval", settings.intervalReminderSound)}
-          setting={settings.intervalReminderSound}
-        />
-        <ReminderSoundPicker
-          label="Go-home reminder sound"
-          onChooseFile={() => chooseAudioFile("goHomeReminderSound")}
-          onSelect={(choice) =>
-            updateSettings({
-              goHomeReminderSound: {
-                ...settings.goHomeReminderSound,
-                choice,
-              },
-            })
-          }
-          onTest={() => testReminderSound("go-home", settings.goHomeReminderSound)}
-          setting={settings.goHomeReminderSound}
-        />
-      </View>
+          {isRestoringSettings ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>Loading saved settings.</Text>
+            </View>
+          ) : null}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Data management</Text>
-        <Text style={styles.body}>
-          This deletes completed session history only. It does not delete an active session.
-        </Text>
-        <Pressable
-          disabled={completedSessions.length === 0}
-          onPress={confirmClearCompletedSessions}
-          style={[
-            styles.deleteButton,
-            completedSessions.length === 0 ? styles.disabledButton : null,
-          ]}
-        >
-          <Text
-            style={[
-              styles.deleteButtonText,
-              completedSessions.length === 0 ? styles.disabledButtonText : null,
-            ]}
-          >
-            Clear all completed sessions
-          </Text>
-        </Pressable>
-      </View>
+          {settingsError ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{settingsError}</Text>
+            </View>
+          ) : null}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Onboarding</Text>
-        <Text style={styles.body}>Review the short introduction to OMD again.</Text>
-        <Pressable
-          onPress={() => {
-            updateSettings({ onboardingCompleted: false });
-            router.push("/onboarding");
-          }}
-          style={styles.secondaryButton}
-        >
-          <Text style={styles.secondaryButtonText}>Show onboarding again</Text>
-        </Pressable>
-      </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Default preset</Text>
+            <Text style={styles.cardBody}>Choose the preset New Session should start with.</Text>
+            <View style={styles.optionGrid}>
+              {presetOptions.map((option) => (
+                <OptionButton
+                  key={option.label}
+                  isSelected={settings.defaultPreset === option.value}
+                  label={option.label}
+                  onPress={() => updateSettings({ defaultPreset: option.value })}
+                />
+              ))}
+            </View>
+          </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>App info</Text>
-        <InfoRow label="App name" value="One More Drink" />
-        <InfoRow label="Short name" value="OMD" />
-        <InfoRow label="Tagline" value="Make a sober plan. Stick to it." />
-        <InfoRow label="Version" value={appVersion} />
-        <Text style={styles.note}>OMD stores your session data locally on this device.</Text>
-        <Text style={styles.note}>
-          One More Drink is a planning and harm-reduction tool. It is not medical advice. If alcohol is
-          causing repeated harm or feels difficult to control, consider speaking with a qualified
-          professional.
-        </Text>
-      </View>
-    </ScrollView>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Currency</Text>
+            <View style={styles.optionRow}>
+              {currencyOptions.map((option) => (
+                <OptionButton
+                  key={option.value}
+                  isSelected={settings.currency === option.value}
+                  label={option.label}
+                  onPress={() => updateSettings({ currency: option.value })}
+                />
+              ))}
+            </View>
+            <Text style={styles.note}>
+              Changing currency only changes display formatting. It does not convert past amounts.
+            </Text>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Notifications</Text>
+            <ToggleRow
+              isEnabled={settings.nextDrinkPhoneNotifications}
+              label="Next-drink phone notification"
+              onPress={() =>
+                updateSettings({
+                  nextDrinkPhoneNotifications: !settings.nextDrinkPhoneNotifications,
+                })
+              }
+            />
+            <ToggleRow
+              isEnabled={settings.goHomePhoneNotifications}
+              label="Go-home phone notification"
+              onPress={() =>
+                updateSettings({
+                  goHomePhoneNotifications: !settings.goHomePhoneNotifications,
+                })
+              }
+            />
+            <View style={styles.field}>
+              <Text style={styles.label}>Water reminder</Text>
+              <View style={styles.optionRow}>
+                {waterReminderOptions.map((option) => (
+                  <OptionButton
+                    key={option.value}
+                    isSelected={settings.waterReminder === option.value}
+                    label={option.label}
+                    onPress={() => updateSettings({ waterReminder: option.value })}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Reminder sounds</Text>
+            <Text style={styles.cardBody}>
+              Device audio file support is experimental. Some Android notification sounds must be
+              bundled with the app.
+            </Text>
+            <ReminderSoundPicker
+              label="Interval reminder sound"
+              onChooseFile={() => chooseAudioFile("intervalReminderSound")}
+              onSelect={(choice) =>
+                updateSettings({
+                  intervalReminderSound: {
+                    ...settings.intervalReminderSound,
+                    choice,
+                  },
+                })
+              }
+              onTest={() => testReminderSound("interval", settings.intervalReminderSound)}
+              setting={settings.intervalReminderSound}
+            />
+            <ReminderSoundPicker
+              label="Go-home reminder sound"
+              onChooseFile={() => chooseAudioFile("goHomeReminderSound")}
+              onSelect={(choice) =>
+                updateSettings({
+                  goHomeReminderSound: {
+                    ...settings.goHomeReminderSound,
+                    choice,
+                  },
+                })
+              }
+              onTest={() => testReminderSound("go-home", settings.goHomeReminderSound)}
+              setting={settings.goHomeReminderSound}
+            />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Data management</Text>
+            <Text style={styles.cardBody}>
+              This deletes completed session history only. It does not delete an active session.
+            </Text>
+            <Pressable
+              disabled={completedSessions.length === 0}
+              onPress={confirmClearCompletedSessions}
+              style={[
+                styles.deleteButton,
+                completedSessions.length === 0 ? styles.disabledButton : null,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.deleteButtonText,
+                  completedSessions.length === 0 ? styles.disabledButtonText : null,
+                ]}
+              >
+                Clear all completed sessions
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Onboarding</Text>
+            <Text style={styles.cardBody}>Review the short introduction to OMD again.</Text>
+            <Pressable
+              onPress={() => {
+                updateSettings({ onboardingCompleted: false });
+                router.push("/onboarding");
+              }}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>Show onboarding again</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>App info</Text>
+            <InfoRow label="App name" value="One More Drink" />
+            <InfoRow label="Short name" value="OMD" />
+            <InfoRow label="Tagline" value="Make a sober plan. Stick to it." />
+            <InfoRow label="Version" value={appVersion} />
+            <Text style={styles.note}>OMD stores your session data locally on this device.</Text>
+            <Text style={styles.note}>
+              One More Drink is a planning and harm-reduction tool. It is not medical advice. If alcohol is
+              causing repeated harm or feels difficult to control, consider speaking with a qualified
+              professional.
+            </Text>
+          </View>
+        </ScrollView>
+      </AppScreen>
+    </>
+  );
+}
+
+function BrandedStack() {
+  return (
+    <Stack.Screen
+      options={{
+        contentStyle: { backgroundColor: colors.wine },
+        headerStyle: { backgroundColor: colors.wine },
+        headerTintColor: colors.card,
+        headerTitleStyle: { color: colors.card, fontWeight: "900" },
+        title: "Settings",
+      }}
+    />
   );
 }
 
@@ -379,9 +401,11 @@ function ToggleRow({ isEnabled, label, onPress }: ToggleRowProps) {
   return (
     <Pressable onPress={onPress} style={styles.toggleRow}>
       <Text style={styles.toggleLabel}>{label}</Text>
-      <Text style={[styles.toggleValue, isEnabled ? styles.toggleValueOn : null]}>
-        {isEnabled ? "On" : "Off"}
-      </Text>
+      <View style={[styles.togglePill, isEnabled ? styles.togglePillOn : null]}>
+        <Text style={[styles.toggleValue, isEnabled ? styles.toggleValueOn : null]}>
+          {isEnabled ? "On" : "Off"}
+        </Text>
+      </View>
     </Pressable>
   );
 }
@@ -415,167 +439,193 @@ function formatFileSize(size: number) {
 const styles = StyleSheet.create({
   screen: {
     flexGrow: 1,
-    gap: 20,
-    padding: 24,
-    backgroundColor: "#f7f4ef",
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxxl,
   },
   header: {
-    gap: 8,
+    gap: spacing.xs,
+  },
+  kicker: {
+    color: colors.accentLight,
+    textTransform: "uppercase",
+    ...typography.caption,
   },
   title: {
-    color: "#1f2a2e",
-    fontSize: 28,
-    fontWeight: "800",
+    color: colors.card,
+    ...typography.screenTitle,
   },
   body: {
-    color: "#52605f",
-    fontSize: 16,
-    lineHeight: 23,
+    color: colors.cardMuted,
+    ...typography.body,
   },
   card: {
-    gap: 14,
-    padding: 18,
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#e5ded3",
+    gap: spacing.lg,
+    padding: spacing.xl,
+    borderRadius: radius.xl,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
+    ...shadows.card,
   },
   sectionTitle: {
-    color: "#1f2a2e",
-    fontSize: 20,
-    fontWeight: "800",
+    color: colors.wineDeep,
+    ...typography.sectionTitle,
+  },
+  cardBody: {
+    color: colors.muted,
+    ...typography.body,
   },
   field: {
-    gap: 8,
+    gap: spacing.sm,
   },
   inlinePanel: {
-    gap: 10,
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#f7f4ef",
-    borderColor: "#e5ded3",
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.border,
     borderWidth: 1,
   },
   label: {
-    color: "#52605f",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  fileSummary: {
-    color: "#1f2a2e",
+    color: colors.muted,
     fontSize: 14,
     fontWeight: "800",
+  },
+  fileSummary: {
+    color: colors.wineDeep,
+    fontSize: 14,
+    fontWeight: "900",
     lineHeight: 20,
   },
   optionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: spacing.sm,
   },
   optionGrid: {
-    gap: 8,
+    gap: spacing.sm,
   },
   optionButton: {
-    borderRadius: 8,
-    borderColor: "#cfc6ba",
+    borderRadius: radius.md,
+    borderColor: colors.border,
     borderWidth: 1,
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   optionButtonSelected: {
-    borderColor: "#2f6f62",
-    backgroundColor: "#e3eee9",
+    borderColor: colors.accent,
+    backgroundColor: colors.wine,
   },
   optionButtonText: {
-    color: "#1f2a2e",
+    color: colors.ink,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   optionButtonTextSelected: {
-    color: "#2f6f62",
+    color: colors.accentLight,
   },
   toggleRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 10,
-    borderBottomColor: "#e5ded3",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
   toggleLabel: {
     flex: 1,
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 16,
-    fontWeight: "700",
-  },
-  toggleValue: {
-    color: "#6d746f",
-    fontSize: 15,
     fontWeight: "800",
   },
+  togglePill: {
+    minWidth: 58,
+    alignItems: "center",
+    borderRadius: radius.pill,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.border,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  togglePillOn: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+  },
+  toggleValue: {
+    color: colors.muted,
+    fontSize: 14,
+    fontWeight: "900",
+  },
   toggleValueOn: {
-    color: "#2f6f62",
+    color: colors.accentDark,
   },
   note: {
-    color: "#52605f",
+    color: colors.muted,
     fontSize: 14,
     lineHeight: 20,
   },
   deleteButton: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#b65353",
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   deleteButtonText: {
-    color: "#9b3f3f",
+    color: colors.destructive,
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   secondaryButton: {
     alignItems: "center",
-    borderRadius: 8,
-    backgroundColor: "#ffffff",
-    borderColor: "#cfc6ba",
+    borderRadius: radius.md,
+    backgroundColor: colors.cardMuted,
+    borderColor: colors.borderStrong,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   secondaryButtonText: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 16,
-    fontWeight: "800",
+    fontWeight: "900",
   },
   disabledButton: {
-    borderColor: "#d6d1c8",
-    backgroundColor: "#f4f1eb",
+    borderColor: colors.border,
+    backgroundColor: colors.cardMuted,
+    opacity: 0.62,
   },
   disabledButtonText: {
-    color: "#8b9692",
+    color: colors.mutedLight,
   },
   infoRow: {
-    gap: 4,
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
   },
   infoValue: {
-    color: "#1f2a2e",
+    color: colors.wineDeep,
     fontSize: 17,
-    fontWeight: "800",
+    fontWeight: "900",
     lineHeight: 23,
   },
   notice: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#fbe9e6",
-    borderColor: "#df9b8f",
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
     borderWidth: 1,
   },
   noticeText: {
-    color: "#52605f",
+    color: colors.ink,
     fontSize: 15,
     lineHeight: 21,
   },
