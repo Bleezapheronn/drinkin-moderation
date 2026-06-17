@@ -208,6 +208,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const scheduleAndStoreReminders = async (scheduledSession: DrinkingSession) => {
     const result = await scheduleSessionReminders(scheduledSession, {
       intervalReminderSound: settings.intervalReminderSound,
+      intervalReminderVibrate: settings.intervalReminderVibrate,
       nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
     });
 
@@ -215,11 +216,21 @@ export function SessionProvider({ children }: PropsWithChildren) {
     storeReminderResult(scheduledSession, result.ids);
   };
 
+  const getReminderPreferences = () => ({
+    intervalReminderSound: settings.intervalReminderSound,
+    intervalReminderVibrate: settings.intervalReminderVibrate,
+    nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
+  });
+
   const reconcileRestoredSession = async (restoredSession: DrinkingSession) => {
-    const result = await reconcileSessionReminders(restoredSession, {
-      intervalReminderSound: settings.intervalReminderSound,
-      nextDrinkPhoneNotifications: settings.nextDrinkPhoneNotifications,
-    });
+    const result = await reconcileSessionReminders(restoredSession, getReminderPreferences());
+
+    setReminderPermissionStatus(result.status);
+    storeReminderResult(restoredSession, result.ids);
+  };
+
+  const rescheduleSessionRemindersForSettings = async (restoredSession: DrinkingSession) => {
+    const result = await scheduleSessionReminders(restoredSession, getReminderPreferences());
 
     setReminderPermissionStatus(result.status);
     storeReminderResult(restoredSession, result.ids);
@@ -227,9 +238,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (!isRestoring && session?.nextAllowedDrinkAt) {
-      void reconcileRestoredSession(session);
+      void rescheduleSessionRemindersForSettings(session);
     }
-  }, [settings.intervalReminderSound, settings.nextDrinkPhoneNotifications]);
+  }, [
+    settings.intervalReminderSound,
+    settings.intervalReminderVibrate,
+    settings.nextDrinkPhoneNotifications,
+  ]);
 
   const value = useMemo<SessionContextValue>(
     () => ({
@@ -289,6 +304,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           nextSession,
           settings.goHomePhoneNotifications,
           settings.goHomeReminderSound,
+          settings.goHomeReminderVibrate,
         );
       },
       undoLastDrink: () => {
@@ -440,7 +456,9 @@ export function SessionProvider({ children }: PropsWithChildren) {
       session,
       settings.goHomePhoneNotifications,
       settings.goHomeReminderSound,
+      settings.goHomeReminderVibrate,
       settings.intervalReminderSound,
+      settings.intervalReminderVibrate,
       settings.nextDrinkPhoneNotifications,
       storageError,
     ],
@@ -509,6 +527,7 @@ async function sendTriggeredBehavioralReminders(
   nextSession: DrinkingSession,
   isGoHomePhoneNotificationEnabled: boolean,
   goHomeReminderSound: ReminderSoundSetting,
+  isGoHomeReminderVibrateEnabled: boolean,
 ) {
   if (
     !previousSession.behavioralReminders.goHomeTriggered &&
@@ -524,6 +543,7 @@ async function sendTriggeredBehavioralReminders(
       soundSetting: goHomeReminderSound,
       title: isHighRiskNight ? "Create an exit" : "Time to wrap up",
       type: "go-home",
+      vibrate: isGoHomeReminderVibrateEnabled,
     });
   }
 }

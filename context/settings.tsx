@@ -28,8 +28,10 @@ export type AppSettings = {
   currency: CurrencyCode;
   defaultPreset: DefaultPresetSetting;
   goHomeReminderSound: ReminderSoundSetting;
+  goHomeReminderVibrate: boolean;
   goHomePhoneNotifications: boolean;
   intervalReminderSound: ReminderSoundSetting;
+  intervalReminderVibrate: boolean;
   nextDrinkPhoneNotifications: boolean;
   onboardingCompleted: boolean;
   waterReminder: WaterReminderPreference;
@@ -49,11 +51,13 @@ const defaultSettings: AppSettings = {
     choice: "system",
     deviceFile: null,
   },
+  goHomeReminderVibrate: true,
   goHomePhoneNotifications: true,
   intervalReminderSound: {
     choice: "system",
     deviceFile: null,
   },
+  intervalReminderVibrate: true,
   nextDrinkPhoneNotifications: true,
   onboardingCompleted: false,
   waterReminder: "in-app",
@@ -120,8 +124,16 @@ function parseSettings(value: string): AppSettings {
       ? parsedSettings.defaultPreset
       : null,
     goHomeReminderSound: parseReminderSoundSetting(parsedSettings.goHomeReminderSound),
+    goHomeReminderVibrate: parseReminderVibrateSetting(
+      parsedSettings.goHomeReminderVibrate,
+      parsedSettings.goHomeReminderSound,
+    ),
     goHomePhoneNotifications: parsedSettings.goHomePhoneNotifications ?? true,
     intervalReminderSound: parseReminderSoundSetting(parsedSettings.intervalReminderSound),
+    intervalReminderVibrate: parseReminderVibrateSetting(
+      parsedSettings.intervalReminderVibrate,
+      parsedSettings.intervalReminderSound,
+    ),
     nextDrinkPhoneNotifications: parsedSettings.nextDrinkPhoneNotifications ?? true,
     onboardingCompleted: parsedSettings.onboardingCompleted ?? false,
     waterReminder: parsedSettings.waterReminder === "off" ? "off" : "in-app",
@@ -139,6 +151,22 @@ function parseReminderSoundSetting(value: unknown): ReminderSoundSetting {
     choice: isReminderSoundChoice(soundSetting.choice) ? soundSetting.choice : "system",
     deviceFile: parseSelectedAudioFile(soundSetting.deviceFile),
   };
+}
+
+function parseReminderVibrateSetting(value: unknown, soundValue: unknown): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (
+    soundValue &&
+    typeof soundValue === "object" &&
+    (soundValue as Partial<ReminderSoundSetting>).choice === "silent"
+  ) {
+    return true;
+  }
+
+  return true;
 }
 
 function parseSelectedAudioFile(value: unknown): SelectedAudioFile | null {

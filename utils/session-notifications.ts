@@ -16,22 +16,6 @@ const builtInSoundFiles: Record<PhoneReminderKind, string> = {
   interval: "interval.mp3",
 };
 
-const notificationChannels: Record<
-  PhoneReminderKind,
-  { builtIn: string; default: string; silent: string }
-> = {
-  "go-home": {
-    builtIn: "dim-go-home-built-in-v1",
-    default: "dim-go-home-default-v1",
-    silent: "dim-go-home-silent-v1",
-  },
-  interval: {
-    builtIn: "dim-interval-built-in-v1",
-    default: "dim-interval-default-v1",
-    silent: "dim-interval-silent-v1",
-  },
-};
-
 // OMD uses only local notification APIs here. Expo Go may still log its Android
 // remote push warning when this module imports expo-notifications; we do not call
 // push token APIs or configure remote push delivery.
@@ -53,6 +37,7 @@ export type ReminderScheduleResult = {
 
 export type ReminderPreferences = {
   intervalReminderSound?: ReminderSoundSetting;
+  intervalReminderVibrate?: boolean;
   nextDrinkPhoneNotifications: boolean;
 };
 
@@ -62,6 +47,7 @@ type BehavioralReminderInput = {
   soundSetting?: ReminderSoundSetting;
   title: string;
   type: "food" | "go-home";
+  vibrate?: boolean;
 };
 
 export async function requestReminderPermissions(): Promise<ReminderPermissionStatus> {
@@ -106,8 +92,13 @@ export async function scheduleSessionReminders(
     const soundBehavior = getNotificationSoundBehavior(
       "interval",
       preferences.intervalReminderSound,
+      preferences.intervalReminderVibrate,
     );
-    await ensureAndroidReminderChannel(soundBehavior.channelId, soundBehavior.channelSound);
+    await ensureAndroidReminderChannel(
+      soundBehavior.channelId,
+      soundBehavior.channelSound,
+      soundBehavior.vibrate,
+    );
 
     const nextDrinkReminderId = await Notifications.scheduleNotificationAsync({
       content: {
@@ -117,6 +108,7 @@ export async function scheduleSessionReminders(
           soundChoice: soundBehavior.choice,
           soundLimitation: soundBehavior.limitation,
           type: "next-drink",
+          vibrate: soundBehavior.vibrate,
         },
         sound: soundBehavior.contentSound,
         title: "Next drink window",
@@ -157,8 +149,16 @@ export async function sendBehavioralReminder(input: BehavioralReminderInput) {
 
   try {
     const reminderKind: PhoneReminderKind = input.type === "go-home" ? "go-home" : "interval";
-    const soundBehavior = getNotificationSoundBehavior(reminderKind, input.soundSetting);
-    await ensureAndroidReminderChannel(soundBehavior.channelId, soundBehavior.channelSound);
+    const soundBehavior = getNotificationSoundBehavior(
+      reminderKind,
+      input.soundSetting,
+      input.vibrate,
+    );
+    await ensureAndroidReminderChannel(
+      soundBehavior.channelId,
+      soundBehavior.channelSound,
+      soundBehavior.vibrate,
+    );
 
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -168,6 +168,7 @@ export async function sendBehavioralReminder(input: BehavioralReminderInput) {
           soundChoice: soundBehavior.choice,
           soundLimitation: soundBehavior.limitation,
           type: input.type,
+          vibrate: soundBehavior.vibrate,
         },
         sound: soundBehavior.contentSound,
         title: input.title,
@@ -188,6 +189,7 @@ export async function sendBehavioralReminder(input: BehavioralReminderInput) {
 export async function scheduleTestReminderSound(
   kind: PhoneReminderKind,
   soundSetting: ReminderSoundSetting,
+  vibrate = true,
 ): Promise<ReminderPermissionStatus> {
   const status = await requestReminderPermissions();
 
@@ -196,8 +198,12 @@ export async function scheduleTestReminderSound(
   }
 
   try {
-    const soundBehavior = getNotificationSoundBehavior(kind, soundSetting);
-    await ensureAndroidReminderChannel(soundBehavior.channelId, soundBehavior.channelSound);
+    const soundBehavior = getNotificationSoundBehavior(kind, soundSetting, vibrate);
+    await ensureAndroidReminderChannel(
+      soundBehavior.channelId,
+      soundBehavior.channelSound,
+      soundBehavior.vibrate,
+    );
 
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -210,6 +216,7 @@ export async function scheduleTestReminderSound(
           soundChoice: soundBehavior.choice,
           soundLimitation: soundBehavior.limitation,
           type: `${kind}-sound-test`,
+          vibrate: soundBehavior.vibrate,
         },
         sound: soundBehavior.contentSound,
         title: kind === "interval" ? "Next drink window" : "Time to wrap up",
@@ -296,15 +303,13 @@ async function cancelReminder(id: string | null) {
 function getNotificationSoundBehavior(
   kind: PhoneReminderKind,
   setting: ReminderSoundSetting = fallbackSoundSetting,
+  vibrate = true,
 ) {
   const choice = setting.choice;
   const isSilent = choice === "silent";
   const isBuiltIn = choice === "built-in";
-  const channelId = isSilent
-    ? notificationChannels[kind].silent
-    : isBuiltIn
-      ? notificationChannels[kind].builtIn
-      : notificationChannels[kind].default;
+  const channelSoundKey = getAndroidChannelSoundKey(choice);
+  const channelId = `dim-${kind}-${channelSoundKey}-${vibrate ? "vibrate" : "no-vibrate"}-v1`;
   const builtInSound = builtInSoundFiles[kind];
 
   return {
@@ -314,39 +319,63 @@ function getNotificationSoundBehavior(
     contentSound: isBuiltIn ? builtInSound : isSilent ? false : true,
     isSilent,
     limitation: choice === "device-file" ? "device-file-notification-sound-unsupported" : null,
+    vibrate,
   };
 }
 
 async function ensureAndroidReminderChannels() {
-  await Promise.all([
-    ensureAndroidReminderChannel(notificationChannels.interval.default),
-    ensureAndroidReminderChannel(notificationChannels.interval.silent, null),
-    ensureAndroidReminderChannel(notificationChannels.interval.builtIn, builtInSoundFiles.interval),
-    ensureAndroidReminderChannel(notificationChannels["go-home"].default),
-    ensureAndroidReminderChannel(notificationChannels["go-home"].silent, null),
-    ensureAndroidReminderChannel(
-      notificationChannels["go-home"].builtIn,
-      builtInSoundFiles["go-home"],
+  const channelRequests = (["interval", "go-home"] as const).flatMap((kind) =>
+    (["silent", "system", "built-in", "device-file"] as const).flatMap((choice) =>
+      [true, false].map((vibrate) => {
+        const soundBehavior = getNotificationSoundBehavior(
+          kind,
+          { choice, deviceFile: null },
+          vibrate,
+        );
+
+        return ensureAndroidReminderChannel(
+          soundBehavior.channelId,
+          soundBehavior.channelSound,
+          soundBehavior.vibrate,
+        );
+      }),
     ),
-  ]);
+  );
+
+  await Promise.all(channelRequests);
 }
 
-async function ensureAndroidReminderChannel(channelId: string, sound?: string | null) {
+async function ensureAndroidReminderChannel(
+  channelId: string,
+  sound?: string | null,
+  vibrate = true,
+) {
   if (Platform.OS !== "android") {
     return;
   }
 
   await Notifications.setNotificationChannelAsync(channelId, {
+    enableVibrate: vibrate,
     importance: Notifications.AndroidImportance.DEFAULT,
     name: getAndroidChannelName(channelId),
     sound,
   });
 }
 
+function getAndroidChannelSoundKey(choice: ReminderSoundSetting["choice"]) {
+  return choice === "built-in" ? "built-in" : choice;
+}
+
 function getAndroidChannelName(channelId: string) {
+  const vibrationLabel = channelId.includes("no-vibrate") ? "no vibration" : "vibrate";
+
   if (channelId.includes("go-home")) {
-    return channelId.includes("silent") ? "OMD go-home reminders silent" : "OMD go-home reminders";
+    return channelId.includes("silent")
+      ? `OMD go-home reminders silent ${vibrationLabel}`
+      : `OMD go-home reminders ${vibrationLabel}`;
   }
 
-  return channelId.includes("silent") ? "OMD interval reminders silent" : "OMD interval reminders";
+  return channelId.includes("silent")
+    ? `OMD interval reminders silent ${vibrationLabel}`
+    : `OMD interval reminders ${vibrationLabel}`;
 }

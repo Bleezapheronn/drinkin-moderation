@@ -35,8 +35,8 @@ const waterReminderOptions: { label: string; value: WaterReminderPreference }[] 
 ];
 
 const reminderSoundOptions: { label: string; value: ReminderSoundChoice }[] = [
+  { label: "Silent", value: "silent" },
   { label: "System default", value: "system" },
-  { label: "Silent / vibrate only", value: "silent" },
   { label: "Built-in OMD sound", value: "built-in" },
   { label: "Choose audio file from device", value: "device-file" },
 ];
@@ -83,8 +83,9 @@ export default function SettingsScreen() {
   const testReminderSound = async (
     kind: "go-home" | "interval",
     soundSetting: ReminderSoundSetting,
+    vibrate: boolean,
   ) => {
-    const status = await scheduleTestReminderSound(kind, soundSetting);
+    const status = await scheduleTestReminderSound(kind, soundSetting, vibrate);
 
     if (status === "granted") {
       Alert.alert("Test scheduled", "A local test notification should arrive in a few seconds.");
@@ -221,8 +222,20 @@ export default function SettingsScreen() {
                   },
                 })
               }
-              onTest={() => testReminderSound("interval", settings.intervalReminderSound)}
+              onTest={() =>
+                testReminderSound(
+                  "interval",
+                  settings.intervalReminderSound,
+                  settings.intervalReminderVibrate,
+                )
+              }
+              onToggleVibrate={() =>
+                updateSettings({
+                  intervalReminderVibrate: !settings.intervalReminderVibrate,
+                })
+              }
               setting={settings.intervalReminderSound}
+              vibrate={settings.intervalReminderVibrate}
             />
             <ReminderSoundPicker
               label="Go-home reminder sound"
@@ -235,8 +248,20 @@ export default function SettingsScreen() {
                   },
                 })
               }
-              onTest={() => testReminderSound("go-home", settings.goHomeReminderSound)}
+              onTest={() =>
+                testReminderSound(
+                  "go-home",
+                  settings.goHomeReminderSound,
+                  settings.goHomeReminderVibrate,
+                )
+              }
+              onToggleVibrate={() =>
+                updateSettings({
+                  goHomeReminderVibrate: !settings.goHomeReminderVibrate,
+                })
+              }
               setting={settings.goHomeReminderSound}
+              vibrate={settings.goHomeReminderVibrate}
             />
           </View>
 
@@ -322,7 +347,9 @@ type ReminderSoundPickerProps = {
   onChooseFile: () => void;
   onSelect: (choice: ReminderSoundChoice) => void;
   onTest: () => void;
+  onToggleVibrate: () => void;
   setting: ReminderSoundSetting;
+  vibrate: boolean;
 };
 
 function ReminderSoundPicker({
@@ -330,7 +357,9 @@ function ReminderSoundPicker({
   onChooseFile,
   onSelect,
   onTest,
+  onToggleVibrate,
   setting,
+  vibrate,
 }: ReminderSoundPickerProps) {
   return (
     <View style={styles.field}>
@@ -371,6 +400,7 @@ function ReminderSoundPicker({
           </Pressable>
         </View>
       ) : null}
+      <ToggleRow isEnabled={vibrate} label="Vibrate" onPress={onToggleVibrate} />
       <Pressable onPress={onTest} style={styles.secondaryButton}>
         <Text style={styles.secondaryButtonText}>Test {label.toLowerCase()}</Text>
       </Pressable>
