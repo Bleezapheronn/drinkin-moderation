@@ -104,20 +104,7 @@ export default function ManagePresetsScreen() {
           </View>
 
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Custom presets</Text>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/preset-editor",
-                    params: { mode: "create-custom" },
-                  } as unknown as Href)
-                }
-                style={styles.inlineButton}
-              >
-                <Text style={styles.inlineButtonText}>Create</Text>
-              </Pressable>
-            </View>
+            <Text style={styles.sectionTitle}>Custom presets</Text>
             {customPresets.length > 0 ? (
               customPresets.map((preset) => (
                 <PresetCard key={preset.id} preset={preset}>
@@ -243,12 +230,6 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing.md,
   },
-  sectionHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
   sectionTitle: {
     color: colors.card,
     ...typography.sectionTitle,
@@ -306,18 +287,6 @@ const styles = StyleSheet.create({
   },
   smallButtonTextDanger: {
     color: colors.destructive,
-  },
-  inlineButton: {
-    borderRadius: radius.pill,
-    backgroundColor: colors.accent,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  inlineButtonText: {
-    color: colors.white,
-    fontFamily: fontFamilies.button,
-    fontSize: 14,
-    lineHeight: 20,
   },
   emptyCard: {
     padding: spacing.lg,
