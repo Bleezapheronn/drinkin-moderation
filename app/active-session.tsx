@@ -97,6 +97,9 @@ export default function ActiveSessionScreen() {
   const completionStripText = session
     ? getCompletionStripText(session, estimatedEnd, isSessionWindowComplete)
     : null;
+  const presetTitle = session?.presetName ?? "Custom session";
+  const isLongPresetTitle = presetTitle.length > 16;
+  const shouldShowTitleFlourishes = presetTitle.length <= 18;
   const drinkProgressFill = useMemo(
     () => getDrinkProgressFill(session, remainingSeconds),
     [remainingSeconds, session],
@@ -306,9 +309,16 @@ export default function ActiveSessionScreen() {
       <ScrollView contentContainerStyle={styles.screen}>
         <HeroCard>
           <View style={styles.sessionMeta}>
-            <TitleFlourish side="left" />
-            <Text style={styles.presetName}>{session.presetName ?? "Custom session"}</Text>
-            <TitleFlourish side="right" />
+            {shouldShowTitleFlourishes ? <TitleFlourish side="left" /> : null}
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+              style={[styles.presetName, isLongPresetTitle ? styles.presetNameCompact : null]}
+            >
+              {presetTitle}
+            </Text>
+            {shouldShowTitleFlourishes ? <TitleFlourish side="right" /> : null}
           </View>
           <View style={styles.drinkTypeRow}>
             <DrinkTypeSeparator />
@@ -322,7 +332,14 @@ export default function ActiveSessionScreen() {
             <Text style={[styles.timerText, timerCopy.isComplete ? styles.completeText : null]}>
               {timerCopy.title}
             </Text>
-            <Text style={styles.timerSubtext}>{timerCopy.subtitle}</Text>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.86}
+              style={styles.timerSubtext}
+            >
+              {timerCopy.subtitle}
+            </Text>
           </View>
 
           <PrimaryButton
@@ -771,7 +788,7 @@ function getTimerCopy(
 
   return {
     isComplete: false,
-    subtitle: "Check in before deciding on another drink.",
+    subtitle: "Check in before the next drink.",
     title: "Ready",
   };
 }
@@ -1052,6 +1069,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     textAlign: "center",
     ...typography.heroTitle,
+    fontSize: 34,
+    lineHeight: 40,
+  },
+  presetNameCompact: {
+    fontSize: 29,
+    lineHeight: 35,
   },
   drinkTypeRow: {
     alignItems: "center",
@@ -1092,8 +1115,8 @@ const styles = StyleSheet.create({
   timerSubtext: {
     color: colors.ink,
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: 18,
-    lineHeight: 25,
+    fontSize: 17,
+    lineHeight: 24,
     textAlign: "center",
   },
   quickStats: {
