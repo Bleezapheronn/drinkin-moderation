@@ -109,13 +109,13 @@ export function PrimaryButton({
     >
       {disabled ? null : (
         <LinearGradient
-          colors={[colors.accentLight, colors.accentMid, colors.accentDeep]}
-          end={{ x: 1, y: 1 }}
+          colors={["#dea024", colors.accent, "#b86f06"]}
+          end={{ x: 0, y: 1 }}
           start={{ x: 0, y: 0 }}
           style={StyleSheet.absoluteFill}
         />
       )}
-      <View style={styles.primaryButtonShine} />
+      <View style={[styles.primaryButtonLowerEdge, disabled ? styles.primaryButtonLowerEdgeDisabled : null]} />
       <Text style={[styles.primaryButtonText, disabled ? styles.primaryButtonTextDisabled : null, textStyle]}>
         {children}
       </Text>
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     minHeight: 58,
     borderRadius: radius.lg,
     backgroundColor: colors.accent,
-    borderColor: colors.accentLight,
+    borderColor: colors.accentDark,
     borderWidth: 1,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
@@ -388,8 +388,9 @@ const styles = StyleSheet.create({
     ...shadows.gold,
   },
   primaryButtonDisabled: {
-    backgroundColor: "#d8c8a6",
-    borderColor: "#d8c8a6",
+    backgroundColor: "#d2bd8c",
+    borderColor: "#c4ad78",
+    elevation: 0,
     shadowOpacity: 0,
   },
   primaryButtonText: {
@@ -398,18 +399,22 @@ const styles = StyleSheet.create({
     zIndex: 2,
     ...typography.buttonLabel,
   },
-  primaryButtonShine: {
+  primaryButtonLowerEdge: {
     position: "absolute",
-    top: 1,
-    left: 12,
-    right: 12,
-    height: 18,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(255, 255, 255, 0.16)",
+    left: 2,
+    right: 2,
+    bottom: 2,
+    height: 4,
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
+    backgroundColor: "rgba(108, 56, 4, 0.24)",
     zIndex: 1,
   },
   primaryButtonTextDisabled: {
-    color: "#6b6259",
+    color: "#766a56",
+  },
+  primaryButtonLowerEdgeDisabled: {
+    backgroundColor: "rgba(125, 105, 68, 0.18)",
   },
   infoStrip: {
     alignItems: "center",
