@@ -306,14 +306,14 @@ export default function ActiveSessionScreen() {
       <ScrollView contentContainerStyle={styles.screen}>
         <HeroCard>
           <View style={styles.sessionMeta}>
-            <Text style={styles.flourish}>-</Text>
+            <TitleFlourish side="left" />
             <Text style={styles.presetName}>{session.presetName ?? "Custom session"}</Text>
-            <Text style={styles.flourish}>-</Text>
+            <TitleFlourish side="right" />
           </View>
           <View style={styles.drinkTypeRow}>
-            <Text style={styles.drinkTypeDot}>.</Text>
+            <DrinkTypeSeparator />
             <Text style={styles.drinkType}>{session.primaryDrinkType}</Text>
-            <Text style={styles.drinkTypeDot}>.</Text>
+            <DrinkTypeSeparator />
           </View>
 
           <DrinkProgressVisual drinkType={session.primaryDrinkType} fillLevel={drinkProgressFill} />
@@ -638,6 +638,32 @@ function UndoIcon() {
 
 function PlusIcon() {
   return <Text style={styles.plusGlyph}>+</Text>;
+}
+
+function TitleFlourish({ side }: { side: "left" | "right" }) {
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      style={[styles.titleFlourish, side === "right" ? styles.titleFlourishRight : null]}
+    >
+      <View style={[styles.titleFlourishStroke, styles.titleFlourishStrokeTop]} />
+      <View style={[styles.titleFlourishStroke, styles.titleFlourishStrokeCenter]} />
+      <View style={[styles.titleFlourishStroke, styles.titleFlourishStrokeBottom]} />
+    </View>
+  );
+}
+
+function DrinkTypeSeparator() {
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      style={styles.drinkTypeSeparator}
+    />
+  );
 }
 
 function ClockIcon() {
@@ -983,18 +1009,47 @@ const styles = StyleSheet.create({
   },
   sessionMeta: {
     alignItems: "center",
+    alignSelf: "stretch",
     flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
     justifyContent: "center",
   },
-  flourish: {
-    color: colors.accent,
-    fontFamily: fontFamilies.display,
-    fontSize: 30,
-    lineHeight: 34,
+  titleFlourish: {
+    flexShrink: 0,
+    height: 34,
+    opacity: 0.94,
+    position: "relative",
+    width: 38,
+  },
+  titleFlourishRight: {
+    transform: [{ scaleX: -1 }],
+  },
+  titleFlourishStroke: {
+    backgroundColor: colors.accent,
+    borderRadius: radius.pill,
+    height: 3,
+    position: "absolute",
+    right: 2,
+  },
+  titleFlourishStrokeTop: {
+    top: 7,
+    transform: [{ rotate: "31deg" }],
+    width: 21,
+  },
+  titleFlourishStrokeCenter: {
+    right: 0,
+    top: 16,
+    width: 29,
+  },
+  titleFlourishStrokeBottom: {
+    bottom: 7,
+    transform: [{ rotate: "-31deg" }],
+    width: 21,
   },
   presetName: {
     color: colors.wineDeep,
+    flexShrink: 1,
+    minWidth: 0,
     textAlign: "center",
     ...typography.heroTitle,
   },
@@ -1012,11 +1067,13 @@ const styles = StyleSheet.create({
     lineHeight: 27,
     textAlign: "center",
   },
-  drinkTypeDot: {
-    color: colors.accent,
-    fontFamily: fontFamilies.bodyBold,
-    fontSize: 22,
-    lineHeight: 26,
+  drinkTypeSeparator: {
+    width: 6,
+    height: 6,
+    borderRadius: 2,
+    backgroundColor: colors.accent,
+    opacity: 0.92,
+    transform: [{ rotate: "45deg" }],
   },
   timerBlock: {
     alignItems: "center",
