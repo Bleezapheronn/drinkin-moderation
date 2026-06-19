@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
     ...typography.numericTimer,
   },
   completeText: {
-    color: colors.success,
+    color: colors.wineDeep,
     fontSize: 38,
     lineHeight: 46,
   },
@@ -1055,9 +1055,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warningSoft,
     borderColor: colors.accentMid,
     borderWidth: 1,
-    height: 34,
+    height: 36,
     justifyContent: "center",
-    width: 34,
+    width: 36,
     ...shadows.soft,
   },
   quickStatActionDisabled: {

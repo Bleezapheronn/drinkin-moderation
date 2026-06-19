@@ -78,7 +78,7 @@ export function StatCard({ action, icon, label, style, value }: StatCardProps) {
         <Text numberOfLines={1} adjustsFontSizeToFit style={styles.statValue}>
           {value}
         </Text>
-        <Text numberOfLines={1} style={styles.statLabel}>
+        <Text style={styles.statLabel}>
           {label}
         </Text>
       </View>
@@ -323,10 +323,10 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
     flex: 1,
     flexDirection: "row",
-    gap: 4,
-    minHeight: 88,
-    paddingHorizontal: 6,
-    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+    minHeight: 100,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
     position: "relative",
     borderRadius: radius.lg,
     backgroundColor: colors.card,
@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
   statIcon: {
     alignItems: "center",
     alignSelf: "center",
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     justifyContent: "center",
     borderRadius: radius.pill,
     backgroundColor: colors.wine,
@@ -350,7 +350,8 @@ const styles = StyleSheet.create({
     gap: 2,
     justifyContent: "flex-start",
     minWidth: 0,
-    paddingTop: 0,
+    paddingRight: spacing.xs,
+    paddingTop: 1,
   },
   statValue: {
     color: colors.wineDeep,
@@ -361,15 +362,16 @@ const styles = StyleSheet.create({
   statLabel: {
     ...typography.caption,
     color: colors.muted,
+    flexShrink: 1,
     fontSize: 12,
     lineHeight: 15,
   },
   statAction: {
     alignItems: "center",
-    bottom: 7,
+    bottom: spacing.sm,
     justifyContent: "center",
     position: "absolute",
-    right: 6,
+    right: spacing.sm,
   },
   primaryButton: {
     alignItems: "center",
