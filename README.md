@@ -40,7 +40,7 @@ The tone is calm, practical, direct, and non-judgmental.
 - First-run onboarding with the core OMD concept
 - Quick-start session presets:
   - Solo / Home
-  - Drinks @Home w/ Company
+  - Hosting Company
   - Night Out
   - High-Risk Night
 - Fixed and dynamic pacing intervals

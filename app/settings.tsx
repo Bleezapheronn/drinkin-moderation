@@ -1,9 +1,11 @@
 import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
 import { Stack, router } from "expo-router";
+import type { Href } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AppScreen } from "../components/design-system";
+import { usePresets } from "../context/presets";
 import { useSettings } from "../context/settings";
 import type {
   CurrencyCode,
@@ -15,14 +17,6 @@ import type {
 import { useSession } from "../context/session";
 import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { scheduleTestReminderSound } from "../utils/session-notifications";
-
-const presetOptions: { label: string; value: DefaultPresetSetting }[] = [
-  { label: "None / Ask every time", value: null },
-  { label: "Solo / Home", value: "Solo / Home" },
-  { label: "Drinks @Home w/ Company", value: "Drinks @Home w/ Company" },
-  { label: "Night Out", value: "Night Out" },
-  { label: "High-Risk Night", value: "High-Risk Night" },
-];
 
 const currencyOptions: { label: string; value: CurrencyCode }[] = [
   { label: "KES", value: "KES" },
@@ -43,8 +37,16 @@ const reminderSoundOptions: { label: string; value: ReminderSoundChoice }[] = [
 
 export default function SettingsScreen() {
   const { completedSessions, clearCompletedSessions } = useSession();
+  const { allPresets, isRestoringPresets, presetsError } = usePresets();
   const { isRestoringSettings, settings, settingsError, updateSettings } = useSettings();
   const appVersion = Constants.expoConfig?.version ?? "Not recorded";
+  const presetOptions: { label: string; value: DefaultPresetSetting }[] = [
+    { label: "None / Ask every time", value: null },
+    ...allPresets.map((preset) => ({
+      label: preset.name,
+      value: preset.id,
+    })),
+  ];
 
   const chooseAudioFile = async (settingKey: "goHomeReminderSound" | "intervalReminderSound") => {
     try {
@@ -138,13 +140,31 @@ export default function SettingsScreen() {
             </View>
           ) : null}
 
+          {presetsError ? (
+            <View style={styles.notice}>
+              <Text style={styles.noticeText}>{presetsError}</Text>
+            </View>
+          ) : null}
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Presets</Text>
+            <Text style={styles.cardBody}>Manage session presets.</Text>
+            <Pressable
+              onPress={() => router.push("/manage-presets" as Href)}
+              style={styles.secondaryButton}
+            >
+              <Text style={styles.secondaryButtonText}>Manage session presets</Text>
+            </Pressable>
+          </View>
+
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Default preset</Text>
             <Text style={styles.cardBody}>Choose the preset New Session should start with.</Text>
+            {isRestoringPresets ? <Text style={styles.note}>Loading saved presets.</Text> : null}
             <View style={styles.optionGrid}>
               {presetOptions.map((option) => (
                 <OptionButton
-                  key={option.label}
+                  key={option.value ?? "none"}
                   isSelected={settings.defaultPreset === option.value}
                   label={option.label}
                   onPress={() => updateSettings({ defaultPreset: option.value })}

@@ -1,5 +1,5 @@
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,11 +12,12 @@ import {
 } from "react-native";
 
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
-import { PacingConfig, PrimaryDrinkType, SessionPresetName, useSession } from "../context/session";
+import { PacingConfig, PrimaryDrinkType, useSession } from "../context/session";
+import { usePresets } from "../context/presets";
 import { useSettings } from "../context/settings";
 import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { getPacingSummary } from "../utils/pacing";
-import { primaryDrinkTypes, sessionPresets } from "../utils/session-presets";
+import { primaryDrinkTypes } from "../utils/session-presets";
 import {
   formatEstimatedEndTime,
   getPlannedSessionDuration,
@@ -32,8 +33,9 @@ type FormErrors = {
 export default function NewSessionScreen() {
   const { preset } = useLocalSearchParams<{ preset?: string }>();
   const { startSession } = useSession();
+  const { allPresets, getPresetByReference, isRestoringPresets, presetsError } = usePresets();
   const { isRestoringSettings, settings } = useSettings();
-  const [selectedPresetName, setSelectedPresetName] = useState<SessionPresetName | null>(null);
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
   const [hasAppliedDefaultPreset, setHasAppliedDefaultPreset] = useState(false);
   const [pacingType, setPacingType] = useState<"fixed" | "dynamic">("fixed");
   const [firstIntervalMinutes, setFirstIntervalMinutes] = useState("60");
@@ -48,7 +50,7 @@ export default function NewSessionScreen() {
   const [goHomeReminderEnabled, setGoHomeReminderEnabled] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const selectedPreset = sessionPresets.find((preset) => preset.name === selectedPresetName);
+  const selectedPreset = allPresets.find((preset) => preset.id === selectedPresetId) ?? null;
   const planningPacing = getPlanningPacing(
     pacingType,
     firstIntervalMinutes,
@@ -61,14 +63,14 @@ export default function NewSessionScreen() {
       ? Date.now() + getPlannedSessionDuration(planningPacing, parsedMaxDrinks) * 60 * 1000
       : null;
 
-  const handlePresetSelect = (presetName: SessionPresetName) => {
-    const preset = sessionPresets.find((candidate) => candidate.name === presetName);
+  const handlePresetSelect = useCallback((presetReference: string) => {
+    const preset = getPresetByReference(presetReference);
 
     if (!preset) {
       return;
     }
 
-    setSelectedPresetName(preset.name);
+    setSelectedPresetId(preset.id);
     setMaxDrinks(String(preset.maxDrinks));
     setSpendingCap(preset.spendingCap === null ? "" : String(preset.spendingCap));
     setGuidance(preset.guidance);
@@ -76,6 +78,7 @@ export default function NewSessionScreen() {
     setFoodReminderEnabled(preset.behavioralReminders.food);
     setGoHomeReminderEnabled(preset.behavioralReminders.goHome);
     setPacingType(preset.pacing.type);
+    setPrimaryDrinkType(preset.primaryDrinkType);
 
     if (preset.pacing.type === "fixed") {
       setFirstIntervalMinutes(String(preset.pacing.intervalMinutes));
@@ -84,23 +87,26 @@ export default function NewSessionScreen() {
       setLaterIntervalMinutes(String(preset.pacing.laterIntervalMinutes));
       setSwitchAfterDrink(preset.pacing.switchAfterDrink);
     }
-  };
+  }, [getPresetByReference]);
 
   useEffect(() => {
     if (
       !isRestoringSettings &&
+      !isRestoringPresets &&
       (preset || settings.defaultPreset) &&
-      !selectedPresetName &&
+      !selectedPresetId &&
       !hasAppliedDefaultPreset
     ) {
-      handlePresetSelect((preset || settings.defaultPreset) as SessionPresetName);
+      handlePresetSelect(preset || settings.defaultPreset || "");
       setHasAppliedDefaultPreset(true);
     }
   }, [
+    handlePresetSelect,
     hasAppliedDefaultPreset,
+    isRestoringPresets,
     isRestoringSettings,
     preset,
-    selectedPresetName,
+    selectedPresetId,
     settings.defaultPreset,
   ]);
 
@@ -163,7 +169,7 @@ export default function NewSessionScreen() {
       intervalMinutes: parsedFirstInterval,
       maxDrinks: Math.floor(parsedMaxDrinks),
       pacing,
-      presetName: selectedPresetName,
+      presetName: selectedPreset?.name ?? null,
       primaryDrinkType,
       spendingCap: parsedSpendingCap,
     });
@@ -200,13 +206,23 @@ export default function NewSessionScreen() {
 
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Presets</Text>
-              {sessionPresets.map((preset) => {
-                const isSelected = selectedPresetName === preset.name;
+              {isRestoringPresets ? (
+                <View style={styles.notice}>
+                  <Text style={styles.noticeText}>Loading saved presets.</Text>
+                </View>
+              ) : null}
+              {presetsError ? (
+                <View style={styles.notice}>
+                  <Text style={styles.noticeText}>{presetsError}</Text>
+                </View>
+              ) : null}
+              {allPresets.map((preset) => {
+                const isSelected = selectedPresetId === preset.id;
 
                 return (
                   <Pressable
-                    key={preset.name}
-                    onPress={() => handlePresetSelect(preset.name)}
+                    key={preset.id}
+                    onPress={() => handlePresetSelect(preset.id)}
                     style={[styles.presetCard, isSelected ? styles.presetCardSelected : null]}
                   >
                     <View style={styles.presetHeader}>
@@ -655,5 +671,18 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.button,
     fontSize: 14,
     lineHeight: 20,
+  },
+  notice: {
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.destructiveSoft,
+    borderColor: colors.destructive,
+    borderWidth: 1,
+  },
+  noticeText: {
+    color: colors.ink,
+    fontFamily: fontFamilies.body,
+    fontSize: 15,
+    lineHeight: 21,
   },
 });

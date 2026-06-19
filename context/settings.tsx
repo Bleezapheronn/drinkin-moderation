@@ -1,12 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 
-export type DefaultPresetSetting =
-  | null
-  | "Solo / Home"
-  | "Drinks @Home w/ Company"
-  | "Night Out"
-  | "High-Risk Night";
+import { normalizePresetReference } from "../utils/session-presets";
+
+export type DefaultPresetSetting = string | null;
 
 export type CurrencyCode = "KES" | "USD";
 export type WaterReminderPreference = "in-app" | "off";
@@ -120,9 +117,7 @@ function parseSettings(value: string): AppSettings {
     ...defaultSettings,
     ...parsedSettings,
     currency: parsedSettings.currency === "USD" ? "USD" : "KES",
-    defaultPreset: isDefaultPreset(parsedSettings.defaultPreset)
-      ? parsedSettings.defaultPreset
-      : null,
+    defaultPreset: parseDefaultPreset(parsedSettings.defaultPreset),
     goHomeReminderSound: parseReminderSoundSetting(parsedSettings.goHomeReminderSound),
     goHomeReminderVibrate: parseReminderVibrateSetting(
       parsedSettings.goHomeReminderVibrate,
@@ -192,14 +187,8 @@ function isReminderSoundChoice(value: unknown): value is ReminderSoundChoice {
   return value === "system" || value === "silent" || value === "built-in" || value === "device-file";
 }
 
-function isDefaultPreset(value: unknown): value is DefaultPresetSetting {
-  return (
-    value === null ||
-    value === "Solo / Home" ||
-    value === "Drinks @Home w/ Company" ||
-    value === "Night Out" ||
-    value === "High-Risk Night"
-  );
+function parseDefaultPreset(value: unknown): DefaultPresetSetting {
+  return normalizePresetReference(value);
 }
 
 export function useSettings() {

@@ -14,11 +14,7 @@ import {
 } from "../utils/session-notifications";
 import { getIntervalForNextDrink } from "../utils/pacing";
 
-export type SessionPresetName =
-  | "Solo / Home"
-  | "Drinks @Home w/ Company"
-  | "Night Out"
-  | "High-Risk Night";
+export type SessionPresetName = string;
 
 export type PrimaryDrinkType =
   | "Beer"

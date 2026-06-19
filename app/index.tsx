@@ -4,22 +4,17 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AppScreen, HeroCard, PrimaryButton } from "../components/design-system";
-import { DrinkingSession, SessionPresetName, useSession } from "../context/session";
+import { usePresets } from "../context/presets";
+import { DrinkingSession, useSession } from "../context/session";
 import { useSettings } from "../context/settings";
 import { colors, fontFamilies, radius, shadows, spacing, typography } from "../theme";
 import { formatCurrency } from "../utils/currency";
 import { getSessionDateRange, getSessionSummaryLine, getSessionTitle } from "../utils/session-format";
 import { getTotalSpent } from "../utils/session-metrics";
 
-const quickStartPresets: SessionPresetName[] = [
-  "Solo / Home",
-  "Drinks @Home w/ Company",
-  "Night Out",
-  "High-Risk Night",
-];
-
 export default function HomeScreen() {
   const { completedSessions, isRestoring, session, storageError } = useSession();
+  const { allPresets } = usePresets();
   const { isRestoringSettings, settings } = useSettings();
   const [now, setNow] = useState(Date.now());
   const recentSessions = completedSessions.slice(0, 3);
@@ -108,18 +103,18 @@ export default function HomeScreen() {
                 Choose a preset for a faster setup, or build the plan manually.
               </Text>
               <View style={styles.quickStartGrid}>
-                {quickStartPresets.map((presetName) => (
+                {allPresets.map((preset) => (
                   <Pressable
-                    key={presetName}
+                    key={preset.id}
                     onPress={() =>
                       router.push({
                         pathname: "/new-session",
-                        params: { preset: presetName },
+                        params: { preset: preset.id },
                       } as Href)
                     }
                     style={styles.quickStartButton}
                   >
-                    <Text style={styles.quickStartText}>{presetName}</Text>
+                    <Text style={styles.quickStartText}>{preset.name}</Text>
                   </Pressable>
                 ))}
               </View>
