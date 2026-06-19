@@ -17,11 +17,12 @@ const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 const beerMugGeometry = {
   foamHeight: 26,
   foamLift: 22,
-  haloSize: 232,
-  haloTickLeft: 114,
-  haloTickTop: 110,
-  haloTickTranslateY: -102,
-  haloTop: -5,
+  haloOffsetX: 10,
+  haloSize: 278,
+  haloTickLeft: 137,
+  haloTickTop: 133,
+  haloTickTranslateY: -124,
+  haloTop: -18,
   innerHeight: 136,
   innerWidth: 110,
   innerX: 18,
@@ -31,6 +32,8 @@ const beerMugGeometry = {
   mugY: 0,
   stageOffsetX: 21,
   stageSize: 190,
+  visualStageHeight: 254,
+  visualStageWidth: 292,
 };
 
 type DrinkProgressVisualProps = {
@@ -42,6 +45,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   const clampedFill = Math.max(0, Math.min(1, fillLevel));
   const animatedFill = useRef(new Animated.Value(clampedFill)).current;
   const shape = getDrinkShape(drinkType);
+  const isBeer = drinkType === "Beer";
   const fillHeight = animatedFill.interpolate({
     inputRange: [0, 1],
     outputRange: [0, shape.height],
@@ -56,13 +60,13 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   }, [animatedFill, clampedFill]);
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.visualStage}>
+    <View style={[styles.wrapper, isBeer ? styles.beerWrapper : null]}>
+      <View style={[styles.visualStage, isBeer ? styles.beerVisualStage : null]}>
         <ProgressHalo
           clampedFill={clampedFill}
-          variant={drinkType === "Beer" ? "beer" : "default"}
+          variant={isBeer ? "beer" : "default"}
         />
-        {drinkType === "Beer" ? (
+        {isBeer ? (
           <LayeredBeerVisual fillHeight={fillHeight} />
         ) : (
           <NativeDrinkVisual fillHeight={fillHeight} shape={shape} />
@@ -285,11 +289,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: 246,
   },
+  beerWrapper: {
+    minHeight: 258,
+  },
   visualStage: {
     alignItems: "center",
     height: 238,
     justifyContent: "flex-end",
     width: 252,
+  },
+  beerVisualStage: {
+    height: beerMugGeometry.visualStageHeight,
+    width: beerMugGeometry.visualStageWidth,
   },
   progressHalo: {
     position: "absolute",
@@ -303,6 +314,7 @@ const styles = StyleSheet.create({
     width: beerMugGeometry.haloSize,
     height: beerMugGeometry.haloSize,
     borderRadius: beerMugGeometry.haloSize / 2,
+    transform: [{ translateX: beerMugGeometry.haloOffsetX }],
   },
   haloTick: {
     position: "absolute",
