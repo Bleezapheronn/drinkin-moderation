@@ -370,10 +370,6 @@ export default function ActiveSessionScreen() {
           />
         </View>
 
-        {completionStripText ? (
-          <InfoStrip icon={<ClockIcon />}>{completionStripText}</InfoStrip>
-        ) : null}
-
         {primaryGuidance ? (
           <GuidanceNotice
             body={primaryGuidance.body}
@@ -415,6 +411,10 @@ export default function ActiveSessionScreen() {
             level={spendingWarning.level}
             title={spendingWarning.title}
           />
+        ) : null}
+
+        {completionStripText ? (
+          <InfoStrip icon={<ClockIcon />}>{completionStripText}</InfoStrip>
         ) : null}
 
         <View style={styles.secondaryActions}>
