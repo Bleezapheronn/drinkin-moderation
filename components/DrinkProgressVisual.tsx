@@ -13,6 +13,7 @@ import type { PrimaryDrinkType } from "../context/session";
 
 const beerMugOverlay = require("../assets/illustrations/beer-mug-overlay.png");
 const spiritsGlassOverlay = require("../assets/illustrations/spirits-glass-overlay.png");
+const wineGlassOverlay = require("../assets/illustrations/wine-glass-overlay.png");
 
 // Tuned to assets/illustrations/beer-mug-overlay.png so the native fill sits
 // under the illustrated rim/walls without leaving visible side gutters.
@@ -51,6 +52,19 @@ const spiritsGlassGeometry = {
   stageWidth: 252,
 };
 
+// Tuned to assets/illustrations/wine-glass-overlay.png so the native red wine
+// fill stays inside the rounded bowl while the stem/base remain overlay-only.
+const wineGlassGeometry = {
+  glassHeight: 208,
+  glassWidth: 108,
+  innerHeight: 96,
+  innerWidth: 68,
+  innerX: 20,
+  innerY: 24,
+  stageHeight: 238,
+  stageWidth: 252,
+};
+
 type DrinkProgressVisualProps = {
   drinkType: PrimaryDrinkType;
   fillLevel: number;
@@ -62,6 +76,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
   const shape = getDrinkShape(drinkType);
   const isBeer = drinkType === "Beer";
   const isSpirits = drinkType === "Spirits / liquor";
+  const isWine = drinkType === "Wine";
   const fillHeight = animatedFill.interpolate({
     inputRange: [0, 1],
     outputRange: [0, shape.height],
@@ -82,6 +97,7 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
           styles.visualStage,
           isBeer ? styles.beerVisualStage : null,
           isSpirits ? styles.spiritsVisualStage : null,
+          isWine ? styles.wineVisualStage : null,
         ]}
       >
         <ProgressHalo
@@ -92,6 +108,8 @@ export function DrinkProgressVisual({ drinkType, fillLevel }: DrinkProgressVisua
           <LayeredBeerVisual fillHeight={fillHeight} />
         ) : isSpirits ? (
           <LayeredSpiritsVisual fillHeight={fillHeight} />
+        ) : isWine ? (
+          <LayeredWineVisual fillHeight={fillHeight} />
         ) : (
           <NativeDrinkVisual fillHeight={fillHeight} shape={shape} />
         )}
@@ -137,6 +155,7 @@ type NativeDrinkVisualProps = {
 
 type LayeredBeerVisualProps = Pick<NativeDrinkVisualProps, "fillHeight">;
 type LayeredSpiritsVisualProps = Pick<NativeDrinkVisualProps, "fillHeight">;
+type LayeredWineVisualProps = Pick<NativeDrinkVisualProps, "fillHeight">;
 
 function LayeredBeerVisual({ fillHeight }: LayeredBeerVisualProps) {
   const foamOpacity = fillHeight.interpolate({
@@ -194,6 +213,32 @@ function LayeredSpiritsVisual({ fillHeight }: LayeredSpiritsVisualProps) {
           accessibilityIgnoresInvertColors
           source={spiritsGlassOverlay}
           style={styles.spiritsGlassOverlay}
+        />
+      </View>
+    </>
+  );
+}
+
+function LayeredWineVisual({ fillHeight }: LayeredWineVisualProps) {
+  return (
+    <>
+      <View style={styles.wineVesselShadow} />
+      <View style={styles.wineOverlayStage}>
+        <View style={styles.wineLiquidBounds}>
+          <Animated.View style={[styles.wineLiquidStack, { height: fillHeight }]}>
+            <LinearGradient
+              colors={["#5c0924", "#8f183d", "#3c0618"]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.wineLiquid}
+            />
+            <View style={styles.wineLiquidSurface} />
+          </Animated.View>
+        </View>
+        <Image
+          accessibilityIgnoresInvertColors
+          source={wineGlassOverlay}
+          style={styles.wineGlassOverlay}
         />
       </View>
     </>
@@ -278,7 +323,7 @@ function getDrinkShape(drinkType: PrimaryDrinkType): DrinkShape {
         foam: false,
         garnish: null,
         handle: false,
-        height: 116,
+        height: wineGlassGeometry.innerHeight,
         stem: true,
         surfaceColor: "#b65a72",
         vesselStyle: styles.wineVessel,
@@ -356,6 +401,10 @@ const styles = StyleSheet.create({
   spiritsVisualStage: {
     height: spiritsGlassGeometry.stageHeight,
     width: spiritsGlassGeometry.stageWidth,
+  },
+  wineVisualStage: {
+    height: wineGlassGeometry.stageHeight,
+    width: wineGlassGeometry.stageWidth,
   },
   progressHalo: {
     position: "absolute",
@@ -555,6 +604,58 @@ const styles = StyleSheet.create({
     bottom: -2,
     width: 122,
     height: 16,
+    borderRadius: 60,
+    backgroundColor: "rgba(47, 6, 18, 0.14)",
+  },
+  wineOverlayStage: {
+    height: wineGlassGeometry.glassHeight,
+    width: wineGlassGeometry.glassWidth,
+  },
+  wineGlassOverlay: {
+    height: wineGlassGeometry.glassHeight,
+    left: 0,
+    position: "absolute",
+    resizeMode: "contain",
+    top: 0,
+    width: wineGlassGeometry.glassWidth,
+    zIndex: 4,
+  },
+  wineLiquidBounds: {
+    borderBottomLeftRadius: 38,
+    borderBottomRightRadius: 38,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    height: wineGlassGeometry.innerHeight,
+    left: wineGlassGeometry.innerX,
+    overflow: "hidden",
+    position: "absolute",
+    top: wineGlassGeometry.innerY,
+    width: wineGlassGeometry.innerWidth,
+    zIndex: 2,
+  },
+  wineLiquidStack: {
+    bottom: 0,
+    left: 0,
+    overflow: "hidden",
+    position: "absolute",
+    right: 0,
+  },
+  wineLiquid: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  wineLiquidSurface: {
+    backgroundColor: "rgba(178, 48, 86, 0.72)",
+    height: 5,
+    left: 5,
+    position: "absolute",
+    right: 5,
+    top: 0,
+  },
+  wineVesselShadow: {
+    position: "absolute",
+    bottom: -3,
+    width: 84,
+    height: 13,
     borderRadius: 60,
     backgroundColor: "rgba(47, 6, 18, 0.14)",
   },
