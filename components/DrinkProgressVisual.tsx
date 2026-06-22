@@ -41,12 +41,12 @@ const beerMugGeometry = {
 // Tuned to assets/illustrations/spirits-glass-overlay.png. The tumbler is a
 // rectangular frame, so the native whiskey fill can use fixed interior bounds.
 const spiritsGlassGeometry = {
-  glassHeight: 184,
-  glassWidth: 160,
-  innerHeight: 126,
-  innerWidth: 130,
-  innerX: 10,
-  innerY: 11,
+  glassHeight: 146,
+  glassWidth: 174,
+  innerHeight: 90,
+  innerWidth: 124,
+  innerX: 25,
+  innerY: 22,
   stageHeight: 204,
   stageWidth: 252,
 };
